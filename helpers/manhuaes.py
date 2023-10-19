@@ -30,6 +30,61 @@ class Manhuaes:
         logger: An instance of logging.Logger for logging.
     """
 
+    base_headers = {
+        "authority": "manhuaes.com",
+        "accept-language": "en-US,en;q=0.9,es-US;q=0.8,es;q=0.7,en-GB-oxendict;q=0.6",
+        "cache-control": "no-cache",
+        "pragma": "no-cache",
+        "sec-ch-ua": '"Chromium";v="118", "Google Chrome";v="118", "Not=A?Brand";v="99"',
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": '"Windows"',
+        "sec-fetch-site": "none",
+        "user-agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36"
+        ),
+    }
+
+    headers_get = base_headers.copy()
+    headers_get.update(
+        {
+            "accept": (
+                "text/html,application/xhtml+xml,application/xml;q=0.9,"
+                "image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"
+            ),
+            "sec-fetch-dest": "document",
+            "sec-fetch-mode": "navigate",
+            "sec-fetch-user": "?1",
+            "upgrade-insecure-requests": "1",
+        }
+    )
+
+    headers_post = base_headers.copy()
+    headers_post.update(
+        {
+            "accept": "*/*",
+            "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+            "origin": "https://manhuaes.com",
+            "referer": "https://manhuaes.com/manga/carnephelias-curse-is-never-ending/",
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "same-origin",
+            "x-requested-with": "XMLHttpRequest",
+        }
+    )
+
+    headers_image = base_headers.copy()
+    headers_image.update(
+        {
+            "authority": "img.manhuaes.com",
+            "accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+            "referer": "https://manhuaes.com/",
+            "sec-fetch-dest": "image",
+            "sec-fetch-mode": "no-cors",
+            "sec-fetch-site": "same-site",
+        }
+    )
+
     def __init__(self):
         self.logger = logging.getLogger(__name__)
 
@@ -39,22 +94,7 @@ class Manhuaes:
         """
         result = requests.get(
             url=f"https://manhuaes.com/manga/{manga_name}",
-            headers={
-                "authority": "manhuaes.com",
-                "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-                "accept-language": "en-US,en;q=0.9,es-US;q=0.8,es;q=0.7,en-GB-oxendict;q=0.6",
-                "cache-control": "no-cache",
-                "pragma": "no-cache",
-                "sec-ch-ua": '"Chromium";v="118", "Google Chrome";v="118", "Not=A?Brand";v="99"',
-                "sec-ch-ua-mobile": "?0",
-                "sec-ch-ua-platform": '"Windows"',
-                "sec-fetch-dest": "document",
-                "sec-fetch-mode": "navigate",
-                "sec-fetch-site": "none",
-                "sec-fetch-user": "?1",
-                "upgrade-insecure-requests": "1",
-                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
-            },
+            headers=self.headers_get,
             timeout=30,
         )
 
@@ -76,25 +116,7 @@ class Manhuaes:
         """
         result = requests.post(
             url="https://manhuaes.com/wp-admin/admin-ajax.php",
-            headers={
-                "authority": "manhuaes.com",
-                "accept": "*/*",
-                "accept-language": "en-US,en;q=0.9,es-US;q=0.8,es;q=0.7,en-GB-oxendict;q=0.6",
-                "cache-control": "no-cache",
-                "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
-                "cookie": "cf_clearance=m7VNXTw9pXW.TZjAcfE8WugDgdw2lxi7uxJpbR6f84w-1697660577-0-1-fd160a8f.9191ec7.aa17556f-0.2.1697660577; PHPSESSID=rfc7vboe7q7h82e8r3bkms4of9",
-                "origin": "https://manhuaes.com",
-                "pragma": "no-cache",
-                "referer": "https://manhuaes.com/manga/survive-on-a-deserted-island-with-beautiful-girls/",
-                "sec-ch-ua": '"Chromium";v="118", "Google Chrome";v="118", "Not=A?Brand";v="99"',
-                "sec-ch-ua-mobile": "?0",
-                "sec-ch-ua-platform": '"Windows"',
-                "sec-fetch-dest": "empty",
-                "sec-fetch-mode": "cors",
-                "sec-fetch-site": "same-origin",
-                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
-                "x-requested-with": "XMLHttpRequest",
-            },
+            headers=self.headers_post,
             data={"action": "manga_get_chapters", "manga": manga_id},
             timeout=30,
         )
@@ -120,22 +142,7 @@ class Manhuaes:
         """
         result = requests.get(
             url=url,
-            headers={
-                "authority": "manhuaes.com",
-                "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-                "accept-language": "en-US,en;q=0.9,es-US;q=0.8,es;q=0.7,en-GB-oxendict;q=0.6",
-                "cache-control": "no-cache",
-                "pragma": "no-cache",
-                "sec-ch-ua": '"Chromium";v="118", "Google Chrome";v="118", "Not=A?Brand";v="99"',
-                "sec-ch-ua-mobile": "?0",
-                "sec-ch-ua-platform": '"Windows"',
-                "sec-fetch-dest": "document",
-                "sec-fetch-mode": "navigate",
-                "sec-fetch-site": "none",
-                "sec-fetch-user": "?1",
-                "upgrade-insecure-requests": "1",
-                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
-            },
+            headers=self.headers_get,
             timeout=30,
         )
 
@@ -155,22 +162,7 @@ class Manhuaes:
         """
         result = requests.get(
             url=f"https://manhuaes.com/manga/{manga_name}",
-            headers={
-                "authority": "manhuaes.com",
-                "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-                "accept-language": "en-US,en;q=0.9,es-US;q=0.8,es;q=0.7,en-GB-oxendict;q=0.6",
-                "cache-control": "no-cache",
-                "pragma": "no-cache",
-                "sec-ch-ua": '"Chromium";v="118", "Google Chrome";v="118", "Not=A?Brand";v="99"',
-                "sec-ch-ua-mobile": "?0",
-                "sec-ch-ua-platform": '"Windows"',
-                "sec-fetch-dest": "document",
-                "sec-fetch-mode": "navigate",
-                "sec-fetch-site": "none",
-                "sec-fetch-user": "?1",
-                "upgrade-insecure-requests": "1",
-                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
-            },
+            headers=self.headers_get,
             timeout=30,
         )
 
@@ -210,21 +202,7 @@ class Manhuaes:
         with open(path, "wb") as writer:
             result = requests.get(
                 url=image,
-                headers={
-                    "authority": "img.manhuaes.com",
-                    "accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
-                    "accept-language": "en-US,en;q=0.9,es-US;q=0.8,es;q=0.7,en-GB-oxendict;q=0.6",
-                    "cache-control": "no-cache",
-                    "pragma": "no-cache",
-                    "referer": "https://manhuaes.com/",
-                    "sec-ch-ua": '"Chromium";v="118", "Google Chrome";v="118", "Not=A?Brand";v="99"',
-                    "sec-ch-ua-mobile": "?0",
-                    "sec-ch-ua-platform": '"Windows"',
-                    "sec-fetch-dest": "image",
-                    "sec-fetch-mode": "no-cors",
-                    "sec-fetch-site": "same-site",
-                    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
-                },
+                headers=self.headers_image,
                 timeout=30,
             )
             if result.status_code == 200:
