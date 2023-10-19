@@ -5,6 +5,7 @@
     "editor.defaultFormatter": "ms-python.black-formatter",
     "editor.formatOnSave": true,
     "conventionalCommits.scopes": [
-        "Linting"
+        "Linting",
+        "Update Docs"
     ]
 }
