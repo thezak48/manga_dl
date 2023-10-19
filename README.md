@@ -36,3 +36,17 @@ There is an optional argument to enable the ability to download all pages of a c
 ```bash
 python3 manhua-dl.py manhua-name -mt /path/to/manhua/folder
 ```
+
+#### Run as Systemd Service
+1. Edit the `User`, `Group`, `WorkingDirectory` and `ExecStart` in `manhua-dl.service` to the correct values<br/>
+2. Copy `manhua-dl.service` and `manhua-dl.timer` to `/etc/systemd/system/`
+3. Execute these commands to enable the service and timer:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable manhua-dl.service
+sudo systemctl start manhua-dl.service
+sudo systemctl enable manhua-dl.timer
+sudo systemctl start manhua-dl.timer
+```
+You can check if the timer is running with `sudo systemctl list-timers` and it should show something like this:
+`Mon 2023-11-19 23:51:49 CEST 3min 1s left  n/a                          n/a                manhua-dl.timer      manhua-dl.service`

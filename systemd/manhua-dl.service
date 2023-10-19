@@ -1,0 +1,13 @@
+[Unit]
+Description=One-shot execution of manhua-dl.py
+
+[Service]
+Type=oneshot
+User=USER_TO_RUN_AS
+Group=GROUP_TO_RUN_AS
+WorkingDirectory=/path/to/manhua-dl/
+ExecStart=/usr/bin/python3 /path/to/manhua-dl.py manhua-name [optional] /path/to/manhua/folder
+RemainAfterExit=no
+
+[Install]
+WantedBy=multi-user.target

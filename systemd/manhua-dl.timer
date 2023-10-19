@@ -1,0 +1,8 @@
+[Unit]
+Description=Execution timer for Manhua-dl service
+
+[Timer]
+OnCalendar=daily
+
+[Install]
+WantedBy=timers.target
