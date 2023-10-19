@@ -69,7 +69,7 @@ for manga_name in manga_names:
                 logging.warning("%s Ch. %s already exists, skipping", title_id, x)
                 continue
 
-            images = manga.get_chapter_images(url=chapters[x])
+            images = manga.get_chapter_images(url=chapter_url)
             manga.download_images(
                 images=images,
                 title=title_id,

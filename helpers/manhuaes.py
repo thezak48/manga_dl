@@ -230,7 +230,7 @@ class Manhuaes:
         if not os.path.exists(compelte_dir):
             os.makedirs(compelte_dir)
 
-        tmp_path = os.path.join(save_location, "tmp", title, "Ch. {}".format(chapter))
+        tmp_path = os.path.join(save_location, "tmp", title, f"Ch. {chapter}")
         completed = True
 
         if not os.path.exists(tmp_path):
@@ -238,7 +238,7 @@ class Manhuaes:
 
             self.logger.info("downloading %s Ch. %s", title, chapter)
             paths = [
-                os.path.join(tmp_path, "%s.jpg", str(x).zfill(3))
+                os.path.join(tmp_path, f"{str(x).zfill(3)}.jpg")
                 for x in range(len(images))
             ]
 
@@ -271,7 +271,11 @@ class Manhuaes:
                 compelte_dir=compelte_dir,
                 output_path=f"{chapter}.cbz",
             )
-            shutil.rmtree(tmp_path)
+            if os.path.exists(tmp_path):
+                shutil.rmtree(tmp_path)
+                self.logger.info("Removed directory: %s", tmp_path)
+            else:
+                self.logger.warning("Directory does not exist: %s", tmp_path)
             self.logger.info("done zipping: Ch. %s", chapter)
 
     def make_cbz(self, directory_path, compelte_dir, output_path):
