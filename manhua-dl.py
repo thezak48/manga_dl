@@ -1,6 +1,23 @@
+"""
+This script is used to download manga from manhuaes.com.
+
+It reads manga names from a text file, fetches their IDs, metadata,
+and chapters from manhuaes.com, and then downloads the images for each chapter. 
+The images are saved to a specified location on the local file system.
+
+The script uses the Manhuaes class defined in the helpers.manhuaes module
+to interact with manhuaes.com. This class provides methods to fetch and download manga data.
+
+The script can optionally use multi-threading to download images concurrently,
+which can significantly speed up the download process.
+
+Usage:
+    python manhua-dl.py manhua [options] save_location
+"""
 import argparse
-import os
 import logging
+import os
+
 from helpers.manhuaes import Manhuaes
 
 parser = argparse.ArgumentParser(

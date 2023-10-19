@@ -1,22 +1,44 @@
+"""
+This module defines the Manhuaes class for interacting with the website manhuaes.com.
+
+The Manhuaes class provides methods to fetch manga IDs, chapters, images, 
+and metadata from manhuaes.com, and to download manga images and save them as .cbz files.
+
+Classes:
+    Manhuaes: A class to interact with the website manhuaes.com.
+"""
+import concurrent.futures
 import logging
 import os.path
 import shutil
+import xml.etree.ElementTree as ET
 import zipfile
 
 import requests
 from bs4 import BeautifulSoup
 from tqdm import tqdm
-import xml.etree.ElementTree as ET
-import concurrent.futures
 
 
 class Manhuaes:
+    """
+    A class to interact with the website manhuaes.com.
+
+    This class provides methods to fetch manga IDs, chapters, images,
+    and metadata from manhuaes.com, and to download manga images and save them as .cbz files.
+
+    Attributes:
+        logger: An instance of logging.Logger for logging.
+    """
+
     def __init__(self):
         self.logger = logging.getLogger(__name__)
 
     def get_manga_id(self, manga_name: str):
+        """
+        Get the manga ID for a given manga name.
+        """
         result = requests.get(
-            url="https://manhuaes.com/manga/{}".format(manga_name),
+            url=f"https://manhuaes.com/manga/{manga_name}",
             headers={
                 "authority": "manhuaes.com",
                 "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
@@ -33,6 +55,7 @@ class Manhuaes:
                 "upgrade-insecure-requests": "1",
                 "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
             },
+            timeout=30,
         )
 
         if result.status_code == 200:
@@ -42,12 +65,15 @@ class Manhuaes:
                 data_id = node["data-id"]
                 node = soup.find("div", {"class": "post-title"})
                 title = node.h1
-                self.logger.debug("found the following id: {}".format(data_id))
+                self.logger.debug("found the following id: %s", data_id)
                 return data_id, title.text.lstrip().rstrip()
         self.logger.error("unable to find the manga id needed")
         return None
 
     def get_manga_chapters(self, manga_id: str):
+        """
+        Get the manga chapters for a given manga ID.
+        """
         result = requests.post(
             url="https://manhuaes.com/wp-admin/admin-ajax.php",
             headers={
@@ -70,6 +96,7 @@ class Manhuaes:
                 "x-requested-with": "XMLHttpRequest",
             },
             data={"action": "manga_get_chapters", "manga": manga_id},
+            timeout=30,
         )
         if result.status_code == 200:
             soup = BeautifulSoup(result.text, "html.parser")
@@ -88,6 +115,9 @@ class Manhuaes:
         return None
 
     def get_chapter_images(self, url: str):
+        """
+        Get the manga chapter images for a given chapter URL.
+        """
         result = requests.get(
             url=url,
             headers={
@@ -106,6 +136,7 @@ class Manhuaes:
                 "upgrade-insecure-requests": "1",
                 "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
             },
+            timeout=30,
         )
 
         if result.status_code == 200:
@@ -119,8 +150,11 @@ class Manhuaes:
             return images
 
     def get_manga_metadata(self, manga_name: str):
+        """
+        Get the manga metadata for a given manga name.
+        """
         result = requests.get(
-            url="https://manhuaes.com/manga/{}".format(manga_name),
+            url=f"https://manhuaes.com/manga/{manga_name}",
             headers={
                 "authority": "manhuaes.com",
                 "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
@@ -137,6 +171,7 @@ class Manhuaes:
                 "upgrade-insecure-requests": "1",
                 "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
             },
+            timeout=30,
         )
 
         if result.status_code == 200:
@@ -154,6 +189,9 @@ class Manhuaes:
         return None
 
     def create_comic_info(self, series, genres, summary, language_iso="en"):
+        """
+        Create a ComicInfo.xml file for the .cbz file.
+        """
         # Create XML elements
         root = ET.Element("ComicInfo")
         ET.SubElement(root, "Series").text = series
@@ -166,6 +204,9 @@ class Manhuaes:
         tree.write("ComicInfo.xml", encoding="utf-8", xml_declaration=True)
 
     def download_image(self, image, path):
+        """
+        Download a single image.
+        """
         with open(path, "wb") as writer:
             result = requests.get(
                 url=image,
@@ -184,11 +225,12 @@ class Manhuaes:
                     "sec-fetch-site": "same-site",
                     "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
                 },
+                timeout=30,
             )
             if result.status_code == 200:
                 writer.write(result.content)
             else:
-                self.logger.error("Failed to download image: {}".format(image))
+                self.logger.error("Failed to download image: %s", image)
                 return False
         return True
 
@@ -203,6 +245,9 @@ class Manhuaes:
         summary,
         multi_threaded,
     ):
+        """
+        Download images for a given manga chapter.
+        """
         compelte_dir = os.path.join(save_location, title)
         if not os.path.exists(compelte_dir):
             os.makedirs(compelte_dir)
@@ -213,9 +258,9 @@ class Manhuaes:
         if not os.path.exists(tmp_path):
             os.makedirs(tmp_path)
 
-            self.logger.info("downloading {} Ch. {}".format(title, chapter))
+            self.logger.info("downloading %s Ch. %s", title, chapter)
             paths = [
-                os.path.join(tmp_path, "{}.jpg".format(str(x).zfill(3)))
+                os.path.join(tmp_path, "%s.jpg", str(x).zfill(3))
                 for x in range(len(images))
             ]
 
@@ -237,23 +282,26 @@ class Manhuaes:
                 ]
 
             if not all(results):
-                self.logger.error("Incomplete download of {}".format(title))
+                self.logger.error("Incomplete download of %s", title)
                 completed = False
 
         if completed:
-            self.logger.info("zipping: Ch. {}".format(chapter))
+            self.logger.info("zipping: Ch. %s", chapter)
             self.create_comic_info(series=series, genres=genres, summary=summary)
             self.make_cbz(
                 directory_path=tmp_path,
                 compelte_dir=compelte_dir,
-                output_path="{}.cbz".format(chapter),
+                output_path=f"{chapter}.cbz",
             )
             shutil.rmtree(tmp_path)
-            self.logger.info("done zipping: Ch. {}".format(chapter))
+            self.logger.info("done zipping: Ch. %s", chapter)
 
     def make_cbz(self, directory_path, compelte_dir, output_path):
+        """
+        Create a .cbz file from a directory.
+        """
         output_path = os.path.join(
-            compelte_dir, "{}.cbz".format(os.path.basename(directory_path))
+            compelte_dir, f"{os.path.basename(directory_path)}.cbz"
         )
         zipf = zipfile.ZipFile(output_path, "w", zipfile.ZIP_DEFLATED)
 
