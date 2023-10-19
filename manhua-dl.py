@@ -20,11 +20,11 @@ for manga_name in manga_names:
         genres, summary = manga.get_manga_metadata(manga_name)
 
         for x in range(len(chapters)):
-            title = "{} Chapter {}".format(title_id, str(x + 1))
             images = manga.get_chapter_images(url=chapters[x])
             manga.download_images(
                 images=images,
-                title=title,
+                title=title_id,
+                chapter=str(x + 1),
                 save_location=save_location,
                 series=title_id,
                 genres=genres,

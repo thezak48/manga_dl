@@ -165,7 +165,14 @@ class Manhuaes:
         tree.write("ComicInfo.xml", encoding="utf-8", xml_declaration=True)
 
     def download_images(
-        self, images: list, title: str, save_location: str, series, genres, summary
+        self,
+        images: list,
+        title: str,
+        chapter,
+        save_location: str,
+        series,
+        genres,
+        summary,
     ):
         compelte_dir = os.path.join(save_location, title)
         if os.path.exists(os.path.join(compelte_dir, "{}.cbz".format(title))):
@@ -173,10 +180,10 @@ class Manhuaes:
         if not os.path.exists(compelte_dir):
             os.makedirs(compelte_dir)
 
-        tmp_path = os.path.join(save_location, "tmp", title)
+        tmp_path = os.path.join(save_location, "tmp", title, "Ch. {}".format(chapter))
 
         completed = True
-        self.logger.info("downloading {}".format(title))
+        self.logger.info("downloading {} Ch. {}".format(title, chapter))
 
         if not os.path.exists(tmp_path):
             os.makedirs(tmp_path)
@@ -185,7 +192,7 @@ class Manhuaes:
             image = images[x]
 
             with open(
-                os.path.join(tmp_path, "{} Page {}.jpg".format(title, str(x).zfill(3))),
+                os.path.join(tmp_path, "{}.jpg".format(str(x).zfill(3))),
                 "wb",
             ) as writer:
                 result = requests.get(
@@ -209,20 +216,20 @@ class Manhuaes:
                 if result.status_code == 200:
                     writer.write(result.content)
                 else:
-                    self.logger.error("incomplete download of {}".format(title))
+                    self.logger.error("incomplete download of Ch. {}".format(chapter))
                     completed = False
                     break
 
         if completed:
-            self.logger.info("zipping: {}".format(title))
+            self.logger.info("zipping: Ch. {}".format(chapter))
             self.create_comic_info(series=series, genres=genres, summary=summary)
             self.make_cbz(
                 directory_path=tmp_path,
                 compelte_dir=compelte_dir,
-                output_path="{}.cbz".format(title),
+                output_path="{}.cbz".format(chapter),
             )
             shutil.rmtree(tmp_path)
-            self.logger.info("done zipping: {}".format(title))
+            self.logger.info("done zipping: Ch. {}".format(chapter))
 
     def make_cbz(self, directory_path, compelte_dir, output_path):
         output_path = os.path.join(
