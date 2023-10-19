@@ -1,5 +1,24 @@
+import argparse
+import os
 from helpers.manhuaes import Manhuaes
 import logging
+
+parser = argparse.ArgumentParser(
+    description="Download manhua from manhuaes.com",
+    usage="%(prog)s manhua [options] save_location",
+)
+parser.add_argument(
+    "manhua",
+    type=str,
+    help="The name and path of the file containing the manhua names or the name of the manhua",
+)
+parser.add_argument(
+    "-mt", "--multi_threaded", action="store_true", help="Enable multi-threading"
+)
+parser.add_argument(
+    "save_location", type=str, help="The location where the manhua should be saved"
+)
+args = parser.parse_args()
 
 logging.basicConfig(
     level=logging.INFO,
@@ -7,11 +26,14 @@ logging.basicConfig(
 )
 
 manga = Manhuaes()
-save_location = "C:\\Users\\thezak48\\Desktop\\test\\"
-multi_threaded = True
+save_location = args.save_location
+multi_threaded = args.multi_threaded
 
-with open("manhua.txt", "r", encoding="utf-8") as f:
-    manga_names = [line.strip() for line in f]
+if os.path.isfile(args.manhua):
+    with open(args.input, "r", encoding="utf-8") as f:
+        manga_names = [line.strip() for line in f]
+else:
+    manga_names = [args.manhua]
 
 for manga_name in manga_names:
     manga_id, title_id = manga.get_manga_id(manga_name)
