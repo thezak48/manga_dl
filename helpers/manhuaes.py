@@ -7,6 +7,7 @@ import requests
 from bs4 import BeautifulSoup
 from tqdm import tqdm
 import xml.etree.ElementTree as ET
+import concurrent.futures
 
 
 class Manhuaes:
@@ -164,6 +165,33 @@ class Manhuaes:
         tree = ET.ElementTree(root)
         tree.write("ComicInfo.xml", encoding="utf-8", xml_declaration=True)
 
+    def download_image(self, image, path):
+        with open(path, "wb") as writer:
+            result = requests.get(
+                url=image,
+                headers={
+                    "authority": "img.manhuaes.com",
+                    "accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+                    "accept-language": "en-US,en;q=0.9,es-US;q=0.8,es;q=0.7,en-GB-oxendict;q=0.6",
+                    "cache-control": "no-cache",
+                    "pragma": "no-cache",
+                    "referer": "https://manhuaes.com/",
+                    "sec-ch-ua": '"Chromium";v="118", "Google Chrome";v="118", "Not=A?Brand";v="99"',
+                    "sec-ch-ua-mobile": "?0",
+                    "sec-ch-ua-platform": '"Windows"',
+                    "sec-fetch-dest": "image",
+                    "sec-fetch-mode": "no-cors",
+                    "sec-fetch-site": "same-site",
+                    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
+                },
+            )
+            if result.status_code == 200:
+                writer.write(result.content)
+            else:
+                self.logger.error("Failed to download image: {}".format(image))
+                return False
+        return True
+
     def download_images(
         self,
         images: list,
@@ -173,6 +201,7 @@ class Manhuaes:
         series,
         genres,
         summary,
+        multi_threaded,
     ):
         compelte_dir = os.path.join(save_location, title)
         if os.path.exists(os.path.join(compelte_dir, "{}.cbz".format(title))):
@@ -182,43 +211,36 @@ class Manhuaes:
 
         tmp_path = os.path.join(save_location, "tmp", title, "Ch. {}".format(chapter))
 
-        completed = True
-        self.logger.info("downloading {} Ch. {}".format(title, chapter))
-
         if not os.path.exists(tmp_path):
             os.makedirs(tmp_path)
 
-        for x in tqdm(range(len(images)), desc="Progress"):
-            image = images[x]
+            self.logger.info("downloading {} Ch. {}".format(title, chapter))
+            paths = [
+                os.path.join(tmp_path, "{}.jpg".format(str(x).zfill(3)))
+                for x in range(len(images))
+            ]
 
-            with open(
-                os.path.join(tmp_path, "{}.jpg".format(str(x).zfill(3))),
-                "wb",
-            ) as writer:
-                result = requests.get(
-                    url=image,
-                    headers={
-                        "authority": "img.manhuaes.com",
-                        "accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
-                        "accept-language": "en-US,en;q=0.9,es-US;q=0.8,es;q=0.7,en-GB-oxendict;q=0.6",
-                        "cache-control": "no-cache",
-                        "pragma": "no-cache",
-                        "referer": "https://manhuaes.com/",
-                        "sec-ch-ua": '"Chromium";v="118", "Google Chrome";v="118", "Not=A?Brand";v="99"',
-                        "sec-ch-ua-mobile": "?0",
-                        "sec-ch-ua-platform": '"Windows"',
-                        "sec-fetch-dest": "image",
-                        "sec-fetch-mode": "no-cors",
-                        "sec-fetch-site": "same-site",
-                        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
-                    },
-                )
-                if result.status_code == 200:
-                    writer.write(result.content)
-                else:
-                    self.logger.error("incomplete download of Ch. {}".format(chapter))
-                    completed = False
-                    break
+            completed = True
+            if multi_threaded:
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    results = list(
+                        tqdm(
+                            executor.map(self.download_image, images, paths),
+                            total=len(images),
+                            desc="Progress",
+                        )
+                    )
+            else:
+                results = [
+                    self.download_image(image, path)
+                    for image, path in tqdm(
+                        zip(images, paths), total=len(images), desc="Progress"
+                    )
+                ]
+
+            if not all(results):
+                self.logger.error("Incomplete download of {}".format(title))
+                completed = False
 
         if completed:
             self.logger.info("zipping: Ch. {}".format(chapter))

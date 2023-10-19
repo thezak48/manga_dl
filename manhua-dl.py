@@ -8,6 +8,7 @@ logging.basicConfig(
 
 manga = Manhuaes()
 save_location = "C:\\Users\\thezak48\\Desktop\\test\\"
+multi_threaded = True
 
 with open("manhua.txt", "r", encoding="utf-8") as f:
     manga_names = [line.strip() for line in f]
@@ -29,4 +30,5 @@ for manga_name in manga_names:
                 series=title_id,
                 genres=genres,
                 summary=summary,
+                multi_threaded=multi_threaded,
             )
