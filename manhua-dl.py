@@ -7,6 +7,7 @@ logging.basicConfig(
 )
 
 manga = Manhuaes()
+save_location = 'C:\\Users\\thezak48\\Desktop\\test\\'
 
 # bewarn, this will download all chapters from this manga
 # at the moment it has 50
@@ -29,5 +30,6 @@ if manga_id:
         )
         manga.download_images(
             images=images,
-            title=title
+            title=title,
+            save_location=save_location,
         )

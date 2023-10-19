@@ -116,17 +116,25 @@ class Manhuaes:
 
             return images
 
-    def download_images(self, images: list, title: str):
-        if os.path.exists('{}.cbz'.format(title)):
+    def download_images(self, images: list, title: str, save_location: str):
+        compelte_dir = os.path.join(save_location, title)
+        if os.path.exists(os.path.join(compelte_dir, '{}.cbz'.format(title))):
             self.logger.warning('{} already exists, skipping'.format(title))
-        if not os.path.exists(title):
-            os.makedirs(title)
+        if not os.path.exists(compelte_dir):
+            os.makedirs(compelte_dir)
+
+        tmp_path = os.path.join(save_location, 'tmp', title)
+
         completed = True
         self.logger.info('downloading {}'.format(title))
+
+        if not os.path.exists(tmp_path):
+            os.makedirs(tmp_path)
+
         for x in tqdm(range(len(images)), desc='Progress'):
             image = images[x]
 
-            with open(os.path.join(title, '{} Page {}.jpg'.format(
+            with open(os.path.join(tmp_path, '{} Page {}.jpg'.format(
                 title,
                 str(x).zfill(3)
             )), 'wb') as writer:
@@ -159,13 +167,15 @@ class Manhuaes:
         if completed:
             self.logger.info('zipping: {}'.format(title))
             self.make_cbz(
-                directory_path=title,
+                directory_path=tmp_path,
+                compelte_dir=compelte_dir,
                 output_path='{}.cbz'.format(title)
             )
-            shutil.rmtree(title)
+            shutil.rmtree(tmp_path)
             self.logger.info('done zipping: {}'.format(title))
-    def make_cbz(self, directory_path, output_path):
+    def make_cbz(self, directory_path, compelte_dir, output_path):
         # TODO add manga metadata, somehow
+        output_path = os.path.join(compelte_dir, '{}.cbz'.format(os.path.basename(directory_path)))
         zipf = zipfile.ZipFile(output_path, 'w', zipfile.ZIP_DEFLATED)
 
         for root, dirs, files in os.walk(directory_path):
