@@ -204,8 +204,16 @@ class Manhuaes:
         multi_threaded,
     ):
         compelte_dir = os.path.join(save_location, title)
-        if os.path.exists(os.path.join(compelte_dir, "{}.cbz".format(title))):
-            self.logger.warning("{} already exists, skipping".format(title))
+        existing_chapters = (
+            set(os.listdir(compelte_dir)) if os.path.exists(compelte_dir) else set()
+        )
+
+        if "Ch. {}.cbz".format(chapter) in existing_chapters:
+            self.logger.warning(
+                "{} Ch. {} already exists, skipping".format(title, chapter)
+            )
+            return
+
         if not os.path.exists(compelte_dir):
             os.makedirs(compelte_dir)
 
