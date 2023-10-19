@@ -30,7 +30,7 @@ save_location = args.save_location
 multi_threaded = args.multi_threaded
 
 if os.path.isfile(args.manhua):
-    with open(args.input, "r", encoding="utf-8") as f:
+    with open(args.manhua, "r", encoding="utf-8") as f:
         manga_names = [line.strip() for line in f]
 else:
     manga_names = [args.manhua]
