@@ -76,7 +76,11 @@ class Manhuaes:
             chapters = []
 
             for node in nodes:
-                chapters.append(node.a["href"])
+                url = node.a["href"]
+                if "/chapter-0" not in url:
+                    chapters.append(url)
+
+            chapters.sort(key=lambda url: int(url.split("/chapter-")[-1].split("/")[0]))
 
             return chapters
 
