@@ -1,7 +1,7 @@
 import argparse
 import os
-from helpers.manhuaes import Manhuaes
 import logging
+from helpers.manhuaes import Manhuaes
 
 parser = argparse.ArgumentParser(
     description="Download manhua from manhuaes.com",
@@ -42,12 +42,21 @@ for manga_name in manga_names:
         chapters = manga.get_manga_chapters(manga_id=manga_id)
         genres, summary = manga.get_manga_metadata(manga_name)
 
-        for x in range(len(chapters)):
+        complete_dir = os.path.join(save_location, title_id)
+        existing_chapters = (
+            set(os.listdir(complete_dir)) if os.path.exists(complete_dir) else set()
+        )
+
+        for x, chapter_url in enumerate(chapters, start=1):
+            if f"Ch. {x}.cbz" in existing_chapters:
+                logging.warning("%s Ch. %s already exists, skipping", title_id, x)
+                continue
+
             images = manga.get_chapter_images(url=chapters[x])
             manga.download_images(
                 images=images,
                 title=title_id,
-                chapter=str(x + 1),
+                chapter=x,
                 save_location=save_location,
                 series=title_id,
                 genres=genres,

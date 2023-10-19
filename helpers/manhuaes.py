@@ -204,20 +204,11 @@ class Manhuaes:
         multi_threaded,
     ):
         compelte_dir = os.path.join(save_location, title)
-        existing_chapters = (
-            set(os.listdir(compelte_dir)) if os.path.exists(compelte_dir) else set()
-        )
-
-        if "Ch. {}.cbz".format(chapter) in existing_chapters:
-            self.logger.warning(
-                "{} Ch. {} already exists, skipping".format(title, chapter)
-            )
-            return
-
         if not os.path.exists(compelte_dir):
             os.makedirs(compelte_dir)
 
         tmp_path = os.path.join(save_location, "tmp", title, "Ch. {}".format(chapter))
+        completed = True
 
         if not os.path.exists(tmp_path):
             os.makedirs(tmp_path)
@@ -228,7 +219,6 @@ class Manhuaes:
                 for x in range(len(images))
             ]
 
-            completed = True
             if multi_threaded:
                 with concurrent.futures.ThreadPoolExecutor() as executor:
                     results = list(
