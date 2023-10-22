@@ -18,16 +18,19 @@ import argparse
 import logging
 import os
 
+from urllib.parse import urlparse, unquote
 from helpers.manhuaes import Manhuaes
+from helpers.manhuaaz import Manhuaaz
+
 
 parser = argparse.ArgumentParser(
-    description="Download manhua from manhuaes.com",
+    description="Download manhua from manhuaes.com or manhuaaz.com",
     usage="%(prog)s manhua [options] save_location",
 )
 parser.add_argument(
     "manhua",
     type=str,
-    help="The name and path of the file containing the manhua names or the name of the manhua",
+    help="The name and path of the file containing the manhua URLs or the URL of the manhua",
 )
 parser.add_argument(
     "-mt", "--multi_threaded", action="store_true", help="Enable multi-threading"
@@ -42,17 +45,29 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(lineno)d - %(levelname)s - %(message)s",
 )
 
-manga = Manhuaes()
+
+def get_website_class(url: str):
+    """Return the class for the website based on the URL."""
+    if "manhuaes.com" in url:
+        return Manhuaes()
+    elif "manhuaaz.com" in url:
+        return Manhuaaz()
+    else:
+        raise ValueError(f"Unsupported website: {url}")
+
+
 save_location = args.save_location
 multi_threaded = args.multi_threaded
 
 if os.path.isfile(args.manhua):
     with open(args.manhua, "r", encoding="utf-8") as f:
-        manga_names = [line.strip() for line in f]
+        manga_urls = [line.strip() for line in f]
 else:
-    manga_names = [args.manhua]
+    manga_urls = [args.manhua]
 
-for manga_name in manga_names:
+for manga_url in manga_urls:
+    manga = get_website_class(manga_url)
+    manga_name = unquote(urlparse(manga_url).path.split("/")[-1])
     manga_id, title_id = manga.get_manga_id(manga_name)
 
     if manga_id:

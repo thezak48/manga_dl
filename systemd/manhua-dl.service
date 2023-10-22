@@ -6,7 +6,7 @@ Type=oneshot
 User=USER_TO_RUN_AS
 Group=GROUP_TO_RUN_AS
 WorkingDirectory=/path/to/manhua-dl/
-ExecStart=/usr/bin/python3 /path/to/manhua-dl.py manhua-name [optional] /path/to/manhua/folder
+ExecStart=/usr/bin/python3 /path/to/manhua-dl.py manhua [optional] /path/to/manhua/folder
 RemainAfterExit=no
 
 [Install]
