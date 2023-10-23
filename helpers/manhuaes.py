@@ -7,17 +7,8 @@ and metadata from manhuaes.com, and to download manga images and save them as .c
 Classes:
     Manhuaes: A class to interact with the website manhuaes.com.
 """
-import concurrent.futures
-import logging
-import os.path
-import shutil
-import xml.etree.ElementTree as ET
-import zipfile
-
 import requests
 from bs4 import BeautifulSoup
-from tqdm import tqdm
-
 from helpers.logging import setup_logging
 
 
@@ -29,7 +20,7 @@ class Manhuaes:
     and metadata from manhuaes.com, and to download manga images and save them as .cbz files.
 
     Attributes:
-        log: An instance of logging.Logger for logging.
+        logger: An instance of log.Logger for log.
     """
 
     base_headers = {
@@ -88,7 +79,7 @@ class Manhuaes:
     )
 
     def __init__(self):
-        self.log = setup_logging()
+        self.logger = setup_logging()
 
     def get_manga_id(self, manga_name: str):
         """
@@ -107,9 +98,9 @@ class Manhuaes:
                 data_id = node["data-id"]
                 node = soup.find("div", {"class": "post-title"})
                 title = node.h1
-                self.log.debug("found the following id: %s", data_id)
+                self.logger.debug("found the following id: %s", data_id)
                 return data_id, title.text.lstrip().rstrip()
-        self.log.error("unable to find the manga id needed")
+        self.logger.error("unable to find the manga id needed")
         return None
 
     def get_manga_chapters(self, manga_id: str):
@@ -179,127 +170,5 @@ class Manhuaes:
 
             return genres, summary
 
-        self.log.error("unable to fetch the manga metadata")
+        self.logger.error("unable to fetch the manga metadata")
         return None
-
-    def create_comic_info(self, series, genres, summary, language_iso="en"):
-        """
-        Create a ComicInfo.xml file for the .cbz file.
-        """
-        # Create XML elements
-        root = ET.Element("ComicInfo")
-        ET.SubElement(root, "Series").text = series
-        ET.SubElement(root, "Genre").text = ", ".join(genres)
-        ET.SubElement(root, "Summary").text = summary
-        ET.SubElement(root, "LanguageISO").text = language_iso
-
-        # Create XML tree and write to file
-        tree = ET.ElementTree(root)
-        tree.write("ComicInfo.xml", encoding="utf-8", xml_declaration=True)
-
-    def download_image(self, image, path):
-        """
-        Download a single image.
-        """
-        with open(path, "wb") as writer:
-            result = requests.get(
-                url=image,
-                headers=self.headers_image,
-                timeout=30,
-            )
-            if result.status_code == 200:
-                writer.write(result.content)
-            else:
-                self.log.error("Failed to download image: %s", image)
-                return False
-        return True
-
-    def download_images(
-        self,
-        images: list,
-        title: str,
-        chapter,
-        save_location: str,
-        series,
-        genres,
-        summary,
-        multi_threaded,
-        progress,
-    ):
-        """
-        Download images for a given manga chapter.
-        """
-        compelte_dir = os.path.join(save_location, title)
-        if not os.path.exists(compelte_dir):
-            os.makedirs(compelte_dir)
-
-        tmp_path = os.path.join(save_location, "tmp", title, f"Ch. {chapter}")
-        completed = True
-
-        if not os.path.exists(tmp_path):
-            os.makedirs(tmp_path)
-
-        self.log.info("downloading %s Ch. %s", title, chapter)
-        paths = [
-            os.path.join(tmp_path, f"{str(x).zfill(3)}.jpg") for x in range(len(images))
-        ]
-
-        results = []
-
-        with progress.progress:
-            download_task = progress.add_task(
-                f"[cyan]Downloading Ch. {chapter}", total=len(images)
-            )
-
-            if multi_threaded:
-                with concurrent.futures.ThreadPoolExecutor() as executor:
-                    futures = [
-                        executor.submit(self.download_image, image, path)
-                        for image, path in zip(images, paths)
-                    ]
-                    for future in concurrent.futures.as_completed(futures):
-                        results.append(future.result())
-                        progress.update(download_task, advance=1)
-            else:
-                for image, path in zip(images, paths):
-                    result = self.download_image(image, path)
-                    results.append(result)
-                    progress.update(download_task, advance=1)
-
-            if not all(results):
-                self.log.error("Incomplete download of %s", title)
-                completed = False
-
-        if completed:
-            self.log.info("zipping: Ch. %s", chapter)
-            self.create_comic_info(series=series, genres=genres, summary=summary)
-            self.make_cbz(
-                directory_path=tmp_path,
-                compelte_dir=compelte_dir,
-                output_path=f"{chapter}.cbz",
-            )
-            if os.path.exists(tmp_path):
-                shutil.rmtree(tmp_path)
-                self.log.info("Removed directory: %s", tmp_path)
-            else:
-                self.log.warning("Directory does not exist: %s", tmp_path)
-            self.log.info("done zipping: Ch. %s", chapter)
-
-    def make_cbz(self, directory_path, compelte_dir, output_path):
-        """
-        Create a .cbz file from a directory.
-        """
-        output_path = os.path.join(
-            compelte_dir, f"{os.path.basename(directory_path)}.cbz"
-        )
-        zipf = zipfile.ZipFile(output_path, "w", zipfile.ZIP_DEFLATED)
-
-        for root, dirs, files in os.walk(directory_path):
-            for file in files:
-                zipf.write(
-                    os.path.join(root, file), os.path.basename(os.path.join(root, file))
-                )
-
-        zipf.write("ComicInfo.xml", "ComicInfo.xml")
-
-        zipf.close()

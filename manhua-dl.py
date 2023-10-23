@@ -22,6 +22,8 @@ from helpers.logging import setup_logging
 from helpers.manhuaes import Manhuaes
 from helpers.manhuaaz import Manhuaaz
 from helpers.progress import Progress
+from helpers.file_handler import FileHandler
+from helpers.image_downloader import ImageDownloader
 
 log = setup_logging()
 
@@ -86,21 +88,39 @@ with progress.progress:
 
             for x, chapter_url in enumerate(chapters, start=1):
                 if f"Ch. {x}.cbz" in existing_chapters:
-                    log.warning("%s Ch. %s already exists, skipping", title_id, x)
+                    # log.warning("%s Ch. %s already exists, skipping", title_id, x)
+                    progress.update(chapter_task, advance=1)
                     continue
 
                 images = manga.get_chapter_images(url=chapter_url)
-                manga.download_images(
+                COMPLETED = ImageDownloader().download_images(
                     images=images,
                     title=title_id,
                     chapter=x,
                     save_location=save_location,
-                    series=title_id,
-                    genres=genres,
-                    summary=summary,
                     multi_threaded=multi_threaded,
                     progress=progress,
                 )
-            progress.update(chapter_task, advance=1)
+
+                if COMPLETED:
+                    FileHandler().create_comic_info(
+                        series=title_id, genres=genres, summary=summary
+                    )  # Use FileHandler to create ComicInfo.xml
+                    FileHandler().make_cbz(
+                        directory_path=os.path.join(
+                            save_location, "tmp", title_id, f"Ch. {x}"
+                        ),
+                        compelte_dir=complete_dir,
+                        output_path=f"{x}.cbz",
+                    )  # Use FileHandler to create .cbz file
+                    FileHandler().cleanup(
+                        directory_path=os.path.join(
+                            save_location, "tmp", title_id, f"Ch. {x}"
+                        )
+                    )  # Use FileHandler to cleanup the directory
+                    log.info("done zipping: Ch. %s", x)
+
+                # Update the progress bar for the chapters
+                progress.update(chapter_task, advance=1)
 
         progress.update(manga_task, advance=1)
