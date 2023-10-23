@@ -6,6 +6,7 @@
     "editor.formatOnSave": true,
     "conventionalCommits.scopes": [
         "Linting",
-        "Update Docs"
+        "Update Docs",
+        "Logging"
     ]
 }

@@ -165,5 +165,6 @@ cython_debug/
 *.cbz
 */*.jpg
 ComicInfo.xml
+logs/
 
 .idea

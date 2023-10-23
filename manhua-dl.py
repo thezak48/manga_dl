@@ -15,13 +15,14 @@ Usage:
     python manhua-dl.py manhua [options] save_location
 """
 import argparse
-import logging
 import os
 
 from urllib.parse import urlparse, unquote
+from helpers.logging import setup_logging
 from helpers.manhuaes import Manhuaes
 from helpers.manhuaaz import Manhuaaz
 
+log = setup_logging()
 
 parser = argparse.ArgumentParser(
     description="Download manhua from manhuaes.com or manhuaaz.com",
@@ -39,11 +40,6 @@ parser.add_argument(
     "save_location", type=str, help="The location where the manhua should be saved"
 )
 args = parser.parse_args()
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(lineno)d - %(levelname)s - %(message)s",
-)
 
 
 def get_website_class(url: str):
@@ -81,7 +77,7 @@ for manga_url in manga_urls:
 
         for x, chapter_url in enumerate(chapters, start=1):
             if f"Ch. {x}.cbz" in existing_chapters:
-                logging.warning("%s Ch. %s already exists, skipping", title_id, x)
+                log.warning("%s Ch. %s already exists, skipping", title_id, x)
                 continue
 
             images = manga.get_chapter_images(url=chapter_url)

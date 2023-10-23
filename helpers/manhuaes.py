@@ -18,6 +18,8 @@ import requests
 from bs4 import BeautifulSoup
 from tqdm import tqdm
 
+from helpers.logging import setup_logging
+
 
 class Manhuaes:
     """
@@ -27,7 +29,7 @@ class Manhuaes:
     and metadata from manhuaes.com, and to download manga images and save them as .cbz files.
 
     Attributes:
-        logger: An instance of logging.Logger for logging.
+        log: An instance of logging.Logger for logging.
     """
 
     base_headers = {
@@ -86,7 +88,7 @@ class Manhuaes:
     )
 
     def __init__(self):
-        self.logger = logging.getLogger(__name__)
+        self.log = setup_logging()
 
     def get_manga_id(self, manga_name: str):
         """
@@ -105,9 +107,9 @@ class Manhuaes:
                 data_id = node["data-id"]
                 node = soup.find("div", {"class": "post-title"})
                 title = node.h1
-                self.logger.debug("found the following id: %s", data_id)
+                self.log.debug("found the following id: %s", data_id)
                 return data_id, title.text.lstrip().rstrip()
-        self.logger.error("unable to find the manga id needed")
+        self.log.error("unable to find the manga id needed")
         return None
 
     def get_manga_chapters(self, manga_id: str):
@@ -177,7 +179,7 @@ class Manhuaes:
 
             return genres, summary
 
-        self.logger.error("unable to fetch the manga metadata")
+        self.log.error("unable to fetch the manga metadata")
         return None
 
     def create_comic_info(self, series, genres, summary, language_iso="en"):
@@ -208,7 +210,7 @@ class Manhuaes:
             if result.status_code == 200:
                 writer.write(result.content)
             else:
-                self.logger.error("Failed to download image: %s", image)
+                self.log.error("Failed to download image: %s", image)
                 return False
         return True
 
@@ -236,7 +238,7 @@ class Manhuaes:
         if not os.path.exists(tmp_path):
             os.makedirs(tmp_path)
 
-            self.logger.info("downloading %s Ch. %s", title, chapter)
+            self.log.info("downloading %s Ch. %s", title, chapter)
             paths = [
                 os.path.join(tmp_path, f"{str(x).zfill(3)}.jpg")
                 for x in range(len(images))
@@ -260,11 +262,11 @@ class Manhuaes:
                 ]
 
             if not all(results):
-                self.logger.error("Incomplete download of %s", title)
+                self.log.error("Incomplete download of %s", title)
                 completed = False
 
         if completed:
-            self.logger.info("zipping: Ch. %s", chapter)
+            self.log.info("zipping: Ch. %s", chapter)
             self.create_comic_info(series=series, genres=genres, summary=summary)
             self.make_cbz(
                 directory_path=tmp_path,
@@ -273,10 +275,10 @@ class Manhuaes:
             )
             if os.path.exists(tmp_path):
                 shutil.rmtree(tmp_path)
-                self.logger.info("Removed directory: %s", tmp_path)
+                self.log.info("Removed directory: %s", tmp_path)
             else:
-                self.logger.warning("Directory does not exist: %s", tmp_path)
-            self.logger.info("done zipping: Ch. %s", chapter)
+                self.log.warning("Directory does not exist: %s", tmp_path)
+            self.log.info("done zipping: Ch. %s", chapter)
 
     def make_cbz(self, directory_path, compelte_dir, output_path):
         """
