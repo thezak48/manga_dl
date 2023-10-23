@@ -9,7 +9,6 @@ Classes:
 """
 import requests
 from bs4 import BeautifulSoup
-from helpers.logging import setup_logging
 
 
 class Manhuaes:
@@ -78,8 +77,8 @@ class Manhuaes:
         }
     )
 
-    def __init__(self):
-        self.logger = setup_logging()
+    def __init__(self, logger):
+        self.logger = logger
 
     def get_manga_id(self, manga_name: str):
         """

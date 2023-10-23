@@ -15,15 +15,15 @@ Usage:
     python manhua-dl.py manhua [options] save_location
 """
 import argparse
+import concurrent.futures
 import os
+from urllib.parse import unquote, urlparse
 
-from urllib.parse import urlparse, unquote
-from helpers.logging import setup_logging
-from helpers.manhuaes import Manhuaes
-from helpers.manhuaaz import Manhuaaz
-from helpers.progress import Progress
-from helpers.file_handler import FileHandler
 from helpers.image_downloader import ImageDownloader
+from helpers.logging import setup_logging
+from helpers.manhuaaz import Manhuaaz
+from helpers.manhuaes import Manhuaes
+from helpers.progress import Progress
 
 log = setup_logging()
 
@@ -40,6 +40,13 @@ parser.add_argument(
     "-mt", "--multi_threaded", action="store_true", help="Enable multi-threading"
 )
 parser.add_argument(
+    "-nt",
+    "--num_threads",
+    type=int,
+    default=10,
+    help="Number of threads to use in case of multi-threading",
+)
+parser.add_argument(
     "save_location", type=str, help="The location where the manhua should be saved"
 )
 args = parser.parse_args()
@@ -48,9 +55,9 @@ args = parser.parse_args()
 def get_website_class(url: str):
     """Return the class for the website based on the URL."""
     if "manhuaes.com" in url:
-        return Manhuaes()
+        return Manhuaes(log)
     elif "manhuaaz.com" in url:
-        return Manhuaaz()
+        return Manhuaaz(log)
     else:
         raise ValueError(f"Unsupported website: {url}")
 
@@ -86,41 +93,54 @@ with progress.progress:
                 set(os.listdir(complete_dir)) if os.path.exists(complete_dir) else set()
             )
 
-            for x, chapter_url in enumerate(chapters, start=1):
-                if f"Ch. {x}.cbz" in existing_chapters:
-                    # log.warning("%s Ch. %s already exists, skipping", title_id, x)
-                    progress.update(chapter_task, advance=1)
-                    continue
+            if multi_threaded:
+                with concurrent.futures.ThreadPoolExecutor(
+                    max_workers=args.num_threads
+                ) as executor:
+                    futures = []
+                    for x, chapter_url in enumerate(chapters, start=1):
+                        if f"Ch. {x}.cbz" in existing_chapters:
+                            log.info("%s Ch. %s already exists, skipping", title_id, x)
+                            progress.update(chapter_task, advance=1)
+                            continue
 
-                images = manga.get_chapter_images(url=chapter_url)
-                COMPLETED = ImageDownloader().download_images(
-                    images=images,
-                    title=title_id,
-                    chapter=x,
-                    save_location=save_location,
-                    multi_threaded=multi_threaded,
-                    progress=progress,
-                )
-
-                if COMPLETED:
-                    FileHandler().create_comic_info(
-                        series=title_id, genres=genres, summary=summary
-                    )  # Use FileHandler to create ComicInfo.xml
-                    FileHandler().make_cbz(
-                        directory_path=os.path.join(
-                            save_location, "tmp", title_id, f"Ch. {x}"
-                        ),
-                        compelte_dir=complete_dir,
-                        output_path=f"{x}.cbz",
-                    )  # Use FileHandler to create .cbz file
-                    FileHandler().cleanup(
-                        directory_path=os.path.join(
-                            save_location, "tmp", title_id, f"Ch. {x}"
+                        images = manga.get_chapter_images(url=chapter_url)
+                        futures.append(
+                            executor.submit(
+                                ImageDownloader(
+                                    log, manga.headers_image
+                                ).download_chapter,
+                                x,
+                                images,
+                                title_id,
+                                save_location,
+                                progress,
+                                genres,
+                                summary,
+                                complete_dir,
+                            )
                         )
-                    )  # Use FileHandler to cleanup the directory
-                    log.info("done zipping: Ch. %s", x)
 
-                # Update the progress bar for the chapters
-                progress.update(chapter_task, advance=1)
+                        progress.update(chapter_task, advance=1)
+            else:
+                for x, chapter_url in enumerate(chapters, start=1):
+                    if f"Ch. {x}.cbz" in existing_chapters:
+                        log.info("%s Ch. %s already exists, skipping", title_id, x)
+                        progress.update(chapter_task, advance=1)
+                        continue
+
+                    images = manga.get_chapter_images(url=chapter_url)
+                    ImageDownloader(log, manga.headers_image).download_chapter(
+                        x,
+                        images,
+                        title_id,
+                        save_location,
+                        progress,
+                        genres,
+                        summary,
+                        complete_dir,
+                    )
+
+                    progress.update(chapter_task, advance=1)
 
         progress.update(manga_task, advance=1)

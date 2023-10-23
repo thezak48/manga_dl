@@ -1,11 +1,13 @@
 """Logging configuration for the project."""
+import logging
 import os
 import sys
-import logging
+from datetime import datetime
 from logging.handlers import RotatingFileHandler
-from rich.console import Console
-from rich.logging import RichHandler
-from rich import traceback
+
+from rich import traceback  # pylint: disable=import-error
+from rich.console import Console  # pylint: disable=import-error
+from rich.logging import RichHandler  # pylint: disable=import-error
 
 
 def setup_logging():
@@ -14,24 +16,22 @@ def setup_logging():
     console = Console()
     traceback.install(console=console, show_locals=False)
     logging.getLogger("urllib3").setLevel(logging.CRITICAL)
-    # create logger
     log = logging.getLogger(__name__)
-    log.setLevel(logging.DEBUG)  # set log level
+    log.setLevel(logging.INFO)
 
-    # create formatter
-    CLI_FORMAT = "%(message)s"
-    FILE_FORMAT = "%(asctime)s - %(levelname)-8s - %(message)s - %(filename)s - %(lineno)d - %(name)s"
+    cli_format = "%(message)s"
+    file_format = "%(asctime)s - %(levelname)-8s - %(message)s - %(filename)s - %(lineno)d - %(name)s"
 
-    # create file handler
-    LOG_FILENAME = "manhua-dl.log"
-    LOG_DIR = "./logs"
-    os.makedirs(LOG_DIR, exist_ok=True)
-    LOG_FILEPATH = os.path.join(LOG_DIR, LOG_FILENAME)
+    current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    log_filename = f"manhua-dl_{current_time}.log"
+    log_dir = "./logs"
+    os.makedirs(log_dir, exist_ok=True)
+    log_filepath = os.path.join(log_dir, log_filename)
     file_handler = RotatingFileHandler(
-        LOG_FILEPATH, maxBytes=1000000, backupCount=10, encoding="utf-8"
+        log_filepath, maxBytes=1000000, backupCount=10, encoding="utf-8"
     )
     file_handler.setLevel(logging.DEBUG)
-    file_handler.setFormatter(logging.Formatter(FILE_FORMAT))
+    file_handler.setFormatter(logging.Formatter(file_format))
 
     console_handler = RichHandler(
         level=logging.WARNING,
@@ -41,7 +41,7 @@ def setup_logging():
         markup=True,
     )
     console_handler.setLevel(logging.WARNING)
-    console_handler.setFormatter(logging.Formatter(CLI_FORMAT))
+    console_handler.setFormatter(logging.Formatter(cli_format))
     log.addHandler(file_handler)
     log.addHandler(console_handler)
     return log

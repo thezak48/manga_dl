@@ -1,13 +1,13 @@
 """Progress bar helper."""
-from rich.progress import (
-    BarColumn,
-    Progress as RichProgress,
+from rich.progress import BarColumn  # pylint: disable=import-error
+from rich.progress import Progress as RichProgress  # pylint: disable=import-error
+from rich.progress import (  # pylint: disable=import-error
     ProgressColumn,
     SpinnerColumn,
     TextColumn,
     TimeRemainingColumn,
 )
-from rich.text import Text
+from rich.text import Text  # pylint: disable=import-error
 
 
 class CustomTransferSpeedColumn(ProgressColumn):
@@ -15,11 +15,11 @@ class CustomTransferSpeedColumn(ProgressColumn):
 
     def render(self, task) -> Text:
         """Show data transfer speed."""
-        speed = task.finished_speed or task.speed
+        speed = task.fields.get("speed")
         if speed is None:
             return Text("?", style="progress.data.speed", justify="center")
         return Text(
-            f"{task.speed:2.0f} {task.fields.get('type')}/s",
+            f"{speed} Kb/s",
             style="progress.data.speed",
             justify="center",
         )
@@ -50,8 +50,15 @@ class Progress:
 
     def add_task(self, description, total):
         """Add a new task to the progress bar."""
-        return self.progress.add_task(description, total=total, rendered_total=total)
+        return self.progress.add_task(
+            description, total=total, rendered_total=total, speed=""
+        )
 
-    def update(self, task, advance):
+    def update(self, taskId, advance):
         """Update the progress bar."""
-        self.progress.update(task, advance=advance)
+        self.progress.update(taskId, advance=advance)
+
+    def remove_task(self, taskId):
+        """Mark a task as completed and hide it."""
+        self.progress.stop_task(taskId)
+        self.progress.tasks[taskId].visible = False
