@@ -21,6 +21,7 @@ from urllib.parse import urlparse, unquote
 from helpers.logging import setup_logging
 from helpers.manhuaes import Manhuaes
 from helpers.manhuaaz import Manhuaaz
+from helpers.progress import Progress
 
 log = setup_logging()
 
@@ -61,33 +62,45 @@ if os.path.isfile(args.manhua):
 else:
     manga_urls = [args.manhua]
 
-for manga_url in manga_urls:
-    manga = get_website_class(manga_url)
-    manga_name = unquote(urlparse(manga_url).path.split("/")[-1])
-    manga_id, title_id = manga.get_manga_id(manga_name)
+progress = Progress()
 
-    if manga_id:
-        chapters = manga.get_manga_chapters(manga_id=manga_id)
-        genres, summary = manga.get_manga_metadata(manga_name)
+with progress.progress:
+    manga_task = progress.add_task("Downloading manga...", total=len(manga_urls))
 
-        complete_dir = os.path.join(save_location, title_id)
-        existing_chapters = (
-            set(os.listdir(complete_dir)) if os.path.exists(complete_dir) else set()
-        )
+    for manga_url in manga_urls:
+        manga = get_website_class(manga_url)
+        manga_name = unquote(urlparse(manga_url).path.split("/")[-1])
+        manga_id, title_id = manga.get_manga_id(manga_name)
 
-        for x, chapter_url in enumerate(chapters, start=1):
-            if f"Ch. {x}.cbz" in existing_chapters:
-                log.warning("%s Ch. %s already exists, skipping", title_id, x)
-                continue
-
-            images = manga.get_chapter_images(url=chapter_url)
-            manga.download_images(
-                images=images,
-                title=title_id,
-                chapter=x,
-                save_location=save_location,
-                series=title_id,
-                genres=genres,
-                summary=summary,
-                multi_threaded=multi_threaded,
+        if manga_id:
+            chapters = manga.get_manga_chapters(manga_id=manga_id)
+            chapter_task = progress.add_task(
+                f"Downloading chapters for {title_id}", total=len(chapters)
             )
+            genres, summary = manga.get_manga_metadata(manga_name)
+
+            complete_dir = os.path.join(save_location, title_id)
+            existing_chapters = (
+                set(os.listdir(complete_dir)) if os.path.exists(complete_dir) else set()
+            )
+
+            for x, chapter_url in enumerate(chapters, start=1):
+                if f"Ch. {x}.cbz" in existing_chapters:
+                    log.warning("%s Ch. %s already exists, skipping", title_id, x)
+                    continue
+
+                images = manga.get_chapter_images(url=chapter_url)
+                manga.download_images(
+                    images=images,
+                    title=title_id,
+                    chapter=x,
+                    save_location=save_location,
+                    series=title_id,
+                    genres=genres,
+                    summary=summary,
+                    multi_threaded=multi_threaded,
+                    progress=progress,
+                )
+            progress.update(chapter_task, advance=1)
+
+        progress.update(manga_task, advance=1)

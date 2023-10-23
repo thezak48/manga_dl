@@ -224,6 +224,7 @@ class Manhuaaz:
         genres,
         summary,
         multi_threaded,
+        progress,
     ):
         """
         Download images for a given manga chapter.
@@ -238,28 +239,32 @@ class Manhuaaz:
         if not os.path.exists(tmp_path):
             os.makedirs(tmp_path)
 
-            self.log.info("downloading %s Ch. %s", title, chapter)
-            paths = [
-                os.path.join(tmp_path, f"{str(x).zfill(3)}.jpg")
-                for x in range(len(images))
-            ]
+        self.log.info("downloading %s Ch. %s", title, chapter)
+        paths = [
+            os.path.join(tmp_path, f"{str(x).zfill(3)}.jpg") for x in range(len(images))
+        ]
+
+        results = []
+
+        with progress.progress:
+            download_task = progress.add_task(
+                f"[cyan]Downloading Ch. {chapter}", total=len(images)
+            )
 
             if multi_threaded:
                 with concurrent.futures.ThreadPoolExecutor() as executor:
-                    results = list(
-                        tqdm(
-                            executor.map(self.download_image, images, paths),
-                            total=len(images),
-                            desc="Progress",
-                        )
-                    )
+                    futures = [
+                        executor.submit(self.download_image, image, path)
+                        for image, path in zip(images, paths)
+                    ]
+                    for future in concurrent.futures.as_completed(futures):
+                        results.append(future.result())
+                        progress.update(download_task, advance=1)
             else:
-                results = [
-                    self.download_image(image, path)
-                    for image, path in tqdm(
-                        zip(images, paths), total=len(images), desc="Progress"
-                    )
-                ]
+                for image, path in zip(images, paths):
+                    result = self.download_image(image, path)
+                    results.append(result)
+                    progress.update(download_task, advance=1)
 
             if not all(results):
                 self.log.error("Incomplete download of %s", title)
