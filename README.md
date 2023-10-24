@@ -1,5 +1,5 @@
 # manhua-dl
-This is designed to download manhua's direct from ether [manhuaes.com](https://manhuaes.com/) or [manhuaaz.com](https://manhuaaz.com/)
+This is designed to download manhua's direct from ether [manhuaes.com](https://manhuaes.com/), [manhuaaz.com](https://manhuaaz.com/) or [manhuaus.com](https://manhuaus.com/)
 
 ## Usage
 
@@ -19,7 +19,7 @@ Run manhua-dl.py
 python3 manhua-dl.py manhua [optional] /path/to/manhua/folder
 ```
 
-`manhua` is the the url of the manhua from ether [manhuaes.com](https://manhuaes.com/) [manhuaaz.com](https://manhuaaz.com/) websites.
+`manhua` is the the url of the manhua from ether [manhuaes.com](https://manhuaes.com/) [manhuaaz.com](https://manhuaaz.com/) [manhuaus.com](https://manhuaus.com/) websites.
 
 `manhua` can also accept a txt file containing a list of names
 see [manhua.txt](https://github.com/thezak48/manhua-dl/blob/main/manhua.txt) for an example of the file, to use it just do
