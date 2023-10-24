@@ -62,3 +62,10 @@ class Progress:
         """Mark a task as completed and hide it."""
         self.progress.stop_task(taskId)
         self.progress.tasks[taskId].visible = False
+
+    def exit(self):
+        """Send exit signal to the progress bar."""
+        progress = RichProgress()
+        progress.console.print("[bold red]Stopping Download[/]...")
+        progress.console.print("[red]Download Stopped[/]!")
+        progress.console.print("")
