@@ -26,6 +26,7 @@ from helpers.logging import setup_logging
 from helpers.manhuaaz import Manhuaaz
 from helpers.manhuaes import Manhuaes
 from helpers.manhuaus import Manhuaus
+from helpers.webtoons import Webtoons
 from helpers.progress import Progress
 
 
@@ -82,6 +83,8 @@ def get_website_class(url: str):
         return Manhuaaz(log)
     elif "manhuaus.com" in url:
         return Manhuaus(log)
+    elif "webtoons.com" in url:
+        return Webtoons(log)
     else:
         raise ValueError(f"Unsupported website: {url}")
 
@@ -102,7 +105,10 @@ try:
 
         for manga_url in manga_urls:
             manga = get_website_class(manga_url)
-            manga_name = unquote(urlparse(manga_url).path.split("/")[-1])
+            if isinstance(manga, Webtoons):
+                manga_name = manga_url
+            else:
+                manga_name = unquote(urlparse(manga_url).path.split("/")[-1])
             manga_id, title_id = manga.get_manga_id(manga_name)
 
             if manga_id:
