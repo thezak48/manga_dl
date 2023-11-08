@@ -107,8 +107,9 @@ class Manhuaaz:
         Get the manga chapters for a given manga ID.
         """
         result = requests.post(
-            url=f"{manga_id}/ajax/chapters",
+            url="https://manhuaaz.com/wp-admin/admin-ajax.php",
             headers=self.headers_post,
+            data={"action": "manga_get_chapters", "manga": manga_id},
             timeout=30,
         )
 
