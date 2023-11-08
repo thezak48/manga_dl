@@ -1,5 +1,5 @@
 [Unit]
-Description=Execution timer for Manhua-dl service
+Description=Execution timer for manga-dl service
 
 [Timer]
 OnCalendar=daily

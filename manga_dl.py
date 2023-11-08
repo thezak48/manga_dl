@@ -1,18 +1,8 @@
 """
-This script is used to download manga from manhuaes.com.
-
-It reads manga names from a text file, fetches their IDs, metadata,
-and chapters from manhuaes.com, and then downloads the images for each chapter. 
-The images are saved to a specified location on the local file system.
-
-The script uses the Manhuaes class defined in the helpers.manhuaes module
-to interact with manhuaes.com. This class provides methods to fetch and download manga data.
-
-The script can optionally use multi-threading to download images concurrently,
-which can significantly speed up the download process.
+This script is used to download manga's, manhua's or manhwa's,  
 
 Usage:
-    python manhua-dl.py manhua [options] save_location
+    python manga_dl.py manga [options] save_location
 """
 import argparse
 import concurrent.futures
@@ -21,14 +11,14 @@ import signal
 import sys
 from urllib.parse import unquote, urlparse
 
-from helpers.image_downloader import ImageDownloader
-from helpers.logging import setup_logging
-from helpers.manhuaaz import Manhuaaz
-from helpers.manhuaes import Manhuaes
-from helpers.manhuaus import Manhuaus
-from helpers.mangaread import Mangaread
-from helpers.webtoons import Webtoons
-from helpers.progress import Progress
+from manga_dl.utilities.logging import setup_logging
+from manga_dl.utilities.image_downloader import ImageDownloader
+from manga_dl.utilities.progress import Progress
+from manga_dl.utilities.sites.manhuaaz import Manhuaaz
+from manga_dl.utilities.sites.manhuaes import Manhuaes
+from manga_dl.utilities.sites.manhuaus import Manhuaus
+from manga_dl.utilities.sites.mangaread import Mangaread
+from manga_dl.utilities.sites.webtoons import Webtoons
 
 
 class GracefulThreadPoolExecutor(concurrent.futures.ThreadPoolExecutor):
@@ -52,13 +42,13 @@ class GracefulThreadPoolExecutor(concurrent.futures.ThreadPoolExecutor):
 log = setup_logging()
 
 parser = argparse.ArgumentParser(
-    description="Download manhua from manhuaes.com or manhuaaz.com",
-    usage="%(prog)s manhua [options] save_location",
+    description="Download download manga's, manhua's or manhwa's",
+    usage="%(prog)s manga [options] save_location",
 )
 parser.add_argument(
-    "manhua",
+    "manga",
     type=str,
-    help="The name and path of the file containing the manhua URLs or the URL of the manhua",
+    help="The name and path of the file containing the manga URLs or the URL of the manga",
 )
 parser.add_argument(
     "-mt", "--multi_threaded", action="store_true", help="Enable multi-threading"
@@ -71,7 +61,7 @@ parser.add_argument(
     help="Number of threads to use in case of multi-threading",
 )
 parser.add_argument(
-    "save_location", type=str, help="The location where the manhua should be saved"
+    "save_location", type=str, help="The location where the manga should be saved"
 )
 args = parser.parse_args()
 
@@ -95,11 +85,11 @@ def get_website_class(url: str):
 save_location = args.save_location
 multi_threaded = args.multi_threaded
 
-if os.path.isfile(args.manhua):
-    with open(args.manhua, "r", encoding="utf-8") as f:
+if os.path.isfile(args.manga):
+    with open(args.manga, "r", encoding="utf-8") as f:
         manga_urls = [line.strip() for line in f]
 else:
-    manga_urls = [args.manhua]
+    manga_urls = [args.manga]
 
 progress = Progress()
 try:

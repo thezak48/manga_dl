@@ -5,7 +5,7 @@ import time
 
 import requests
 
-from helpers.file_handler import FileHandler
+from manga_dl.utilities.file_handler import FileHandler
 
 
 class ImageDownloader:

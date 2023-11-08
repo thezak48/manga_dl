@@ -1,13 +1,13 @@
 """Progress bar helper."""
-from rich.progress import BarColumn  # pylint: disable=import-error
-from rich.progress import Progress as RichProgress  # pylint: disable=import-error
-from rich.progress import (  # pylint: disable=import-error
+from rich.progress import BarColumn
+from rich.progress import Progress as RichProgress
+from rich.progress import (
     ProgressColumn,
     SpinnerColumn,
     TextColumn,
     TimeRemainingColumn,
 )
-from rich.text import Text  # pylint: disable=import-error
+from rich.text import Text
 
 
 class CustomTransferSpeedColumn(ProgressColumn):
