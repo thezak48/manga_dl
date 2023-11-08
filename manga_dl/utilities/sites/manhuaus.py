@@ -106,6 +106,7 @@ class Manhuaus:
             headers=self.headers_post,
             timeout=30,
         )
+
         if result.status_code == 200:
             soup = BeautifulSoup(result.text, "html.parser")
             nodes = soup.find_all("li", {"class": "wp-manga-chapter"})
@@ -114,9 +115,20 @@ class Manhuaus:
             for node in nodes:
                 url = node.a["href"]
                 if "/chapter-0" not in url:
-                    chapters.append(url)
+                    chapter_number_raw = (
+                        url.split("/chapter-")[-1].split("/")[0].replace("-", ".")
+                    )
+                    chapter_number = (
+                        int(float(chapter_number_raw))
+                        if chapter_number_raw.isdigit()
+                        else float(chapter_number_raw)
+                    )
+                    chapters.append((chapter_number, url))
 
-            chapters.sort(key=lambda url: int(url.split("/chapter-")[-1].split("/")[0]))
+            def chapter_sort_key(chapter_info):
+                return chapter_info[0]
+
+            chapters.sort(key=chapter_sort_key)
 
             return chapters
 

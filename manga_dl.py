@@ -1,5 +1,5 @@
 """
-This script is used to download manga's, manhua's or manhwa's,  
+This script is used to download manga's, manhua's or manhwa's.
 
 Usage:
     python manga_dl.py manga [options] save_location
@@ -123,10 +123,12 @@ try:
                         max_workers=args.num_threads
                     ) as executor:
                         futures = []
-                        for x, chapter_url in enumerate(chapters, start=1):
-                            if f"Ch. {x}.cbz" in existing_chapters:
+                        for chapter_number, chapter_url in chapters:
+                            if f"Ch. {chapter_number}.cbz" in existing_chapters:
                                 log.info(
-                                    "%s Ch. %s already exists, skipping", title_id, x
+                                    "%s Ch. %s already exists, skipping",
+                                    title_id,
+                                    chapter_number,
                                 )
                                 progress.update(chapter_task, advance=1)
                                 continue
@@ -137,7 +139,7 @@ try:
                                     ImageDownloader(
                                         log, manga.headers_image
                                     ).download_chapter,
-                                    x,
+                                    chapter_number,
                                     images,
                                     title_id,
                                     save_location,
@@ -148,16 +150,21 @@ try:
                                     chapter_task,
                                 )
                             )
+
                 else:
-                    for x, chapter_url in enumerate(chapters, start=1):
-                        if f"Ch. {x}.cbz" in existing_chapters:
-                            log.info("%s Ch. %s already exists, skipping", title_id, x)
+                    for chapter_number, chapter_url in chapters:
+                        if f"Ch. {chapter_number}.cbz" in existing_chapters:
+                            log.info(
+                                "%s Ch. %s already exists, skipping",
+                                title_id,
+                                chapter_number,
+                            )
                             progress.update(chapter_task, advance=1)
                             continue
 
                         images = manga.get_chapter_images(url=chapter_url)
                         ImageDownloader(log, manga.headers_image).download_chapter(
-                            x,
+                            chapter_number,
                             images,
                             title_id,
                             save_location,

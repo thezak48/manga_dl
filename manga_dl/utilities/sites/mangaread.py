@@ -106,6 +106,7 @@ class Mangaread:
             headers=self.headers_post,
             timeout=30,
         )
+
         if result.status_code == 200:
             soup = BeautifulSoup(result.text, "html.parser")
             nodes = soup.find_all("li", {"class": "wp-manga-chapter"})
@@ -114,12 +115,18 @@ class Mangaread:
             for node in nodes:
                 url = node.a["href"]
                 if "/chapter-0" not in url:
-                    chapters.append(url)
+                    chapter_number_raw = (
+                        url.split("/chapter-")[-1].split("/")[0].replace("-", ".")
+                    )
+                    chapter_number = (
+                        int(float(chapter_number_raw))
+                        if chapter_number_raw.isdigit()
+                        else float(chapter_number_raw)
+                    )
+                    chapters.append((chapter_number, url))
 
-            def chapter_sort_key(url):
-                chapter_str = url.split("/chapter-")[-1].split("/")[0]
-                parts = chapter_str.split("-")
-                return tuple(float(part) for part in parts)
+            def chapter_sort_key(chapter_info):
+                return chapter_info[0]
 
             chapters.sort(key=chapter_sort_key)
 

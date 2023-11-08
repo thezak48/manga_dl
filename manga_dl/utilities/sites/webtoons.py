@@ -100,7 +100,7 @@ class Webtoons:
                 chapter_viewer_url = viewer_url.replace(
                     f"/episode-{params['episode_no'][0]}", f"/episode-{i}"
                 ).replace(f"&episode_no={params['episode_no'][0]}", f"&episode_no={i}")
-                chapters.append(chapter_viewer_url)
+                chapters.append((i, chapter_viewer_url))
 
             return chapters
 
