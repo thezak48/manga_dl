@@ -7,6 +7,8 @@ and metadata from mangaread.org, and to download manga images and save them as .
 Classes:
     Mangaread: A class to interact with the website mangaread.org.
 """
+import re
+
 import requests
 from bs4 import BeautifulSoup
 
@@ -115,14 +117,14 @@ class Mangaread:
             for node in nodes:
                 url = node.a["href"]
                 if "/chapter-0" not in url:
-                    chapter_number_raw = (
-                        url.split("/chapter-")[-1].split("/")[0].replace("-", ".")
-                    )
-                    chapter_number = (
-                        int(float(chapter_number_raw))
-                        if chapter_number_raw.isdigit()
-                        else float(chapter_number_raw)
-                    )
+                    chapter_number_raw = url.split("/chapter-")[-1].split("/")[0]
+                    number_parts = re.findall(r"\d+", chapter_number_raw)
+
+                    if len(number_parts) >= 2:
+                        chapter_number = float(f"{number_parts[0]}.{number_parts[1]}")
+                    else:
+                        chapter_number = int(float(number_parts[0]))
+
                     chapters.append((chapter_number, url))
 
             def chapter_sort_key(chapter_info):
