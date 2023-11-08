@@ -7,6 +7,7 @@
     "conventionalCommits.scopes": [
         "Linting",
         "Update Docs",
-        "Logging"
+        "Logging",
+        "New Site Supported"
     ]
 }

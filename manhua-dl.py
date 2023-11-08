@@ -26,6 +26,7 @@ from helpers.logging import setup_logging
 from helpers.manhuaaz import Manhuaaz
 from helpers.manhuaes import Manhuaes
 from helpers.manhuaus import Manhuaus
+from helpers.mangaread import Mangaread
 from helpers.webtoons import Webtoons
 from helpers.progress import Progress
 
@@ -83,6 +84,8 @@ def get_website_class(url: str):
         return Manhuaaz(log)
     elif "manhuaus.com" in url:
         return Manhuaus(log)
+    elif "mangaread.org" in url:
+        return Mangaread(log)
     elif "webtoons.com" in url:
         return Webtoons(log)
     else:
