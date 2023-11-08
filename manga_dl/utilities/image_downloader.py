@@ -140,6 +140,7 @@ class ImageDownloader:
         genres,
         summary,
         complete_dir,
+        chapter_task,
     ):
         """Download a chapter."""
         download_task = progress.add_task(
@@ -167,3 +168,5 @@ class ImageDownloader:
                 directory_path=os.path.join(save_location, "tmp", title_id, f"Ch. {x}")
             )
             self.logger.info("done zipping: Ch. %s", x)
+            progress.remove_task(download_task)
+            progress.update(chapter_task, advance=1)

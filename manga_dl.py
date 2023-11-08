@@ -145,10 +145,9 @@ try:
                                     genres,
                                     summary,
                                     complete_dir,
+                                    chapter_task,
                                 )
                             )
-
-                            progress.update(chapter_task, advance=1)
                 else:
                     for x, chapter_url in enumerate(chapters, start=1):
                         if f"Ch. {x}.cbz" in existing_chapters:
@@ -166,9 +165,8 @@ try:
                             genres,
                             summary,
                             complete_dir,
+                            chapter_task,
                         )
-
-                        progress.update(chapter_task, advance=1)
 
         progress.update(manga_task, advance=1)
 
