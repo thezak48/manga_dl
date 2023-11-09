@@ -16,23 +16,31 @@ pip install -r requirements.txt
 
 Run manga_dl.py
 ```bash
-python3 manga_dl.py manga [optional] /path/to/manga/folder
+python3 manga_dl.py -m <manga> [optional] -s </path/to/manga/folder>
 ```
 
 `manga` is the the url of the manga from ether [manhuaes.com](https://manhuaes.com/) [manhuaaz.com](https://manhuaaz.com/) [manhuaus.com](https://manhuaus.com/) [mangaread.com](https://mangaread.com/) [webtoons.com](https://webtoons.com/) websites. Please see `manga.example.txt` for an example of what is required.
 
 `manga` can also accept a txt file containing a list of names
-see [manga.txt](https://github.com/thezak48/manga_dl/blob/main/manga.example.txt) for an example of the file, to use it just do
+see [manga.txt](https://github.com/thezak48/manga_dl/blob/main/data/manga.example.txt) for an example of the file, to use it just do
 ```bash
-python3 manga_dl.py manga.txt [optional] /path/to/manga/folder
+python3 manga_dl.py -m <manga.txt> [optional] -s </path/to/manga/folder>
 ```
 
+### Config File
+
+1. Create a `config.ini` file in the data directory. See the `config.example.ini` file
+2. If no arguments are passed when running `manga_dl.py`, the default values from the `config.ini` file will be used. If arguments are passed, they will override the default values.
+3. To use just do
+   ```bash
+    python3 manga_dl.py
+   ```
 
 ### Advanced Usage
 There is an optional argument to enable the ability to download all pages of a chapter at once. Just pass the arg `-mt` after the `manga` for example
 
 ```bash
-python3 manga_dl.py manga -mt /path/to/manga/folder
+python3 manga_dl.py -m <manga> -mt -s </path/to/manga/folder>
 ```
 
 #### Run as Systemd Service

@@ -6,7 +6,7 @@ Type=oneshot
 User=USER_TO_RUN_AS
 Group=GROUP_TO_RUN_AS
 WorkingDirectory=/path/to/manga_dl/
-ExecStart=/usr/bin/python3 /path/to/manga_dl.py manga [optional] /path/to/manga/folder
+ExecStart=/usr/bin/python3 /path/to/manga_dl.py -m <manga> [optional] -s </path/to/manga/folder>
 RemainAfterExit=no
 
 [Install]

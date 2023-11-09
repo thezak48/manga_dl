@@ -5,13 +5,16 @@ Usage:
     python manga_dl.py manga [options] save_location
 """
 import argparse
+import configparser
 import concurrent.futures
 import os
 import signal
 import sys
 from urllib.parse import unquote, urlparse
 
+
 from manga_dl.utilities.logging import setup_logging
+from manga_dl.utilities.config import ConfigHandler
 from manga_dl.utilities.image_downloader import ImageDownloader
 from manga_dl.utilities.progress import Progress
 from manga_dl.utilities.sites.manhuaaz import Manhuaaz
@@ -41,27 +44,42 @@ class GracefulThreadPoolExecutor(concurrent.futures.ThreadPoolExecutor):
 
 log = setup_logging()
 
+config = ConfigHandler(
+    log, os.path.join(os.path.dirname(__file__), "data", "config.ini")
+)
+
 parser = argparse.ArgumentParser(
     description="Download download manga's, manhua's or manhwa's",
     usage="%(prog)s manga [options] save_location",
 )
 parser.add_argument(
-    "manga",
+    "-m",
+    "--manga",
     type=str,
+    nargs="?",
+    default=config.get("General", "mangas"),
     help="The name and path of the file containing the manga URLs or the URL of the manga",
 )
 parser.add_argument(
-    "-mt", "--multi_threaded", action="store_true", help="Enable multi-threading"
+    "-mt",
+    "--multi_threaded",
+    action="store_true",
+    default=config.getboolean("General", "multi_threaded"),
+    help="Enable multi-threading",
 )
 parser.add_argument(
     "-nt",
     "--num_threads",
     type=int,
-    default=10,
+    default=config.getint("General", "num_threads"),
     help="Number of threads to use in case of multi-threading",
 )
 parser.add_argument(
-    "save_location", type=str, help="The location where the manga should be saved"
+    "-s",
+    "--save_location",
+    type=str,
+    default=config.get("General", "save_location"),
+    help="The location where the manga should be saved",
 )
 args = parser.parse_args()
 
