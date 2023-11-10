@@ -105,9 +105,9 @@ multi_threaded = args.multi_threaded
 
 if os.path.isfile(args.manga):
     with open(args.manga, "r", encoding="utf-8") as f:
-        manga_urls = [line.strip() for line in f]
+        manga_urls = [line.strip().rstrip("/") for line in f]
 else:
-    manga_urls = [args.manga]
+    manga_urls = [args.manga.rstrip("/")]
 
 progress = Progress()
 try:
