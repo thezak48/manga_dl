@@ -31,6 +31,7 @@ class ConfigHandler:
             "multi_threaded": "True",
             "num_threads": "10",
             "save_location": "./data/manga",
+            "driver_path": "/usr/bin/chromedriver",
         }
 
         with open(self.path, "w") as configfile:

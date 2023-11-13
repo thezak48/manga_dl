@@ -37,6 +37,10 @@ class FileHandler:
         """
         Create a .cbz file from a directory.
         """
+        if not os.listdir(directory_path):
+            self.logger.warning("No files found in %s", directory_path)
+            return
+
         output_path = os.path.join(
             compelte_dir, f"{os.path.basename(directory_path)}.cbz"
         )

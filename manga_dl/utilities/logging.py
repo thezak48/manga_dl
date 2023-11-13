@@ -24,7 +24,7 @@ def setup_logging():
 
     current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     log_filename = f"manga_dl_{current_time}.log"
-    log_dir = "./logs"
+    log_dir = "./data/logs"
     os.makedirs(log_dir, exist_ok=True)
     log_filepath = os.path.join(log_dir, log_filename)
     file_handler = RotatingFileHandler(

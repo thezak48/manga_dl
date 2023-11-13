@@ -22,6 +22,7 @@ from manga_dl.utilities.sites.manhuaes import Manhuaes
 from manga_dl.utilities.sites.manhuaus import Manhuaus
 from manga_dl.utilities.sites.mangaread import Mangaread
 from manga_dl.utilities.sites.webtoons import Webtoons
+from manga_dl.utilities.sites.kaiscans import Kaiscans
 
 
 class GracefulThreadPoolExecutor(concurrent.futures.ThreadPoolExecutor):
@@ -47,6 +48,8 @@ log = setup_logging()
 config = ConfigHandler(
     log, os.path.join(os.path.dirname(__file__), "data", "config.ini")
 )
+
+driver_path = config.get("General", "driver_path")
 
 parser = argparse.ArgumentParser(
     description="Download download manga's, manhua's or manhwa's",
@@ -96,6 +99,8 @@ def get_website_class(url: str):
         return Mangaread(log)
     elif "webtoons.com" in url:
         return Webtoons(log)
+    elif "kaiscans.com" in url:
+        return Kaiscans(log, driver_path)
     else:
         raise ValueError(f"Unsupported website: {url}")
 
@@ -116,7 +121,7 @@ try:
 
         for manga_url in manga_urls:
             manga = get_website_class(manga_url)
-            if isinstance(manga, Webtoons):
+            if isinstance(manga, (Webtoons, Kaiscans)):
                 manga_name = manga_url
             else:
                 manga_name = unquote(urlparse(manga_url).path.split("/")[-1])
