@@ -157,12 +157,18 @@ class ImageDownloader:
 
         if completed:
             FileHandler(self.logger).create_comic_info(
-                series=title_id, genres=genres, summary=summary
+                series=title_id,
+                genres=genres,
+                summary=summary,
+                comic_info_path=os.path.join(save_location, "tmp", title_id),
             )
             FileHandler(self.logger).make_cbz(
                 directory_path=os.path.join(save_location, "tmp", title_id, f"Ch. {x}"),
                 compelte_dir=complete_dir,
                 output_path=f"{x}.cbz",
+                comic_info_path=os.path.join(
+                    save_location, "tmp", title_id, "ComicInfo.xml"
+                ),
             )
             FileHandler(self.logger).cleanup(
                 directory_path=os.path.join(save_location, "tmp", title_id, f"Ch. {x}")

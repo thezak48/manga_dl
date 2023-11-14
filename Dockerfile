@@ -4,7 +4,7 @@ RUN echo "http://dl-4.alpinelinux.org/alpine/v3.14/main" >> /etc/apk/repositorie
     echo "http://dl-4.alpinelinux.org/alpine/v3.14/community" >> /etc/apk/repositories
 
 
-RUN apk --no-cache add chromium chromium-chromedriver
+RUN apk --no-cache add chromium chromium-chromedriver shadow
 RUN pip install --upgrade pip
 
 LABEL maintainer="thezak48" \
@@ -17,18 +17,21 @@ LABEL maintainer="thezak48" \
   org.opencontainers.image.title="manga_dl" \
   org.opencontainers.image.description="manga_dl is an application to to download manga's, manhua's or manhwa's."
 
-ENV PUID=1000
-ENV PGID=1000
+ENV APP_DIR="/app" CONFIG_DIR="/config" PUID="1000" PGID="1000" UMASK="002" TZ="Etc/UTC"
 ENV PYTHONUNBUFFERED=1
 
-COPY . /
+RUN mkdir "${APP_DIR}" && \
+    mkdir "${CONFIG_DIR}" && \
+    useradd -u 1000 -U -d "${CONFIG_DIR}" -s /bin/false  manga && \
+    usermod -G users manga
+
+VOLUME ["${CONFIG_DIR}"]
+
+COPY . ${APP_DIR}
+
+WORKDIR ${APP_DIR}
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-RUN addgroup -g $PGID appgroup && \
-    adduser -D -u $PUID -G appgroup appuser && \
-    mkdir -p /config && \
-    chown -R appuser:appgroup /config
-USER appuser
 
-CMD [ "python", "/manga_dl.py" ]
+CMD [ "python", "./manga_dl.py" ]

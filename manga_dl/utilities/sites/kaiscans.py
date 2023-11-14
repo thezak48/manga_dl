@@ -12,7 +12,6 @@ import requests
 from time import sleep
 from bs4 import BeautifulSoup
 from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
 
 
 class Kaiscans:
@@ -86,9 +85,12 @@ class Kaiscans:
         """
         Get the manga chapter images for a given chapter URL.
         """
-        options = Options()
-        options.add_argument("--headless")
-        driver = webdriver.Chrome(self.driver_path, options=options)
+        options = webdriver.ChromeOptions()
+        options.add_argument("headless")
+        options.add_argument("no-sandbox")
+        options.add_argument("disable-dev-shm-usage")
+        options.add_argument("user-data-dir=/config/.cache/selenium")
+        driver = webdriver.Chrome(options=options)
         driver.get(url)
 
         sleep(5)

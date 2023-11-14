@@ -46,15 +46,13 @@ class GracefulThreadPoolExecutor(concurrent.futures.ThreadPoolExecutor):
 
 
 if os.path.exists("/.dockerenv"):
-    dirname = "config"
+    config_path = "/config"
 else:
-    dirname = "data"
+    config_path = os.path.dirname(__file__), "data"
 
-log = setup_logging(dirname)
+log = setup_logging(config_path)
 
-config = ConfigHandler(
-    log, os.path.join(os.path.dirname(__file__), dirname, "config.ini")
-)
+config = ConfigHandler(log, os.path.join(config_path, "config.ini"))
 
 if config.has_option("General", "driver_path"):
     driver_path = config.get("General", "driver_path")

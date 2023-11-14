@@ -19,7 +19,9 @@ class FileHandler:
     def __init__(self, logger):
         self.logger = logger
 
-    def create_comic_info(self, series, genres, summary, language_iso="en"):
+    def create_comic_info(
+        self, series, genres, summary, comic_info_path, language_iso="en"
+    ):
         """
         Create a ComicInfo.xml file for the .cbz file.
         """
@@ -30,10 +32,14 @@ class FileHandler:
         ET.SubElement(root, "LanguageISO").text = language_iso
 
         tree = ET.ElementTree(root)
-        tree.write("ComicInfo.xml", encoding="utf-8", xml_declaration=True)
+
+        os.makedirs(comic_info_path, exist_ok=True)
+        file_path = os.path.join(comic_info_path, "ComicInfo.xml")
+
+        tree.write(file_path, encoding="utf-8", xml_declaration=True)
         self.logger.info("ComicInfo.xml for %s created", series)
 
-    def make_cbz(self, directory_path, compelte_dir, output_path):
+    def make_cbz(self, directory_path, compelte_dir, output_path, comic_info_path):
         """
         Create a .cbz file from a directory.
         """
@@ -53,7 +59,7 @@ class FileHandler:
                 )
                 self.logger.info("%s added to %s", file, output_path)
 
-        zipf.write("ComicInfo.xml", "ComicInfo.xml")
+        zipf.write(comic_info_path, "ComicInfo.xml")
         self.logger.info("ComicInfo.xml added to %s", output_path)
 
         zipf.close()
