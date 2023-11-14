@@ -25,13 +25,15 @@ class ConfigHandler:
     def getboolean(self, section, option):
         return self.config.getboolean(section, option)
 
+    def has_option(self, section, option):
+        return self.config.has_option(section, option)
+
     def _generate_default_config(self):
         self.config["General"] = {
             "mangas": "./data/manga.txt",
             "multi_threaded": "True",
             "num_threads": "10",
             "save_location": "./data/manga",
-            "driver_path": "/usr/bin/chromedriver",
         }
 
         with open(self.path, "w") as configfile:

@@ -1,0 +1,7 @@
+.git
+.vscode
+renovate.json
+.gitignore
+data/*
+systemd/*
+README.md
