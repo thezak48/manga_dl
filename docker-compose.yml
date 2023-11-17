@@ -1,0 +1,9 @@
+version: "2.1"
+services:
+  autobrr:
+    image: ghcr.io/thezak48/manga_dl:latest
+    container_name: manga_dl
+    volumes:
+      - ./config:/config
+      - ./data:/data
+    restart: unless-stopped

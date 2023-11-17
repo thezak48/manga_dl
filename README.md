@@ -1,58 +1,27 @@
 # manga_dl
-This is designed to download manga's direct from ether [manhuaes.com](https://manhuaes.com/), [manhuaaz.com](https://manhuaaz.com/), [manhuaus.com](https://manhuaus.com/), [mangaread.com](https://mangaread.com/) or [webtoons.com](https://webtoons.com/)
+This is designed to download manga's direct from ether 
+- [manhuaes.com](https://manhuaes.com/)
+- [manhuaaz.com](https://manhuaaz.com/)
+- [manhuaus.com](https://manhuaus.com/)
+- [mangaread.org](https://mangaread.org/)
+- [kaiscans.com](https://kaiscans.com/)
+- [mangakaklot.com](https://mangakakalot.com/)
+- [webtoons.com](https://webtoons.com/)
 
 ## Usage
 
-First clone the repo
-```bash
-git clone https://github.com/thezak48/manga_dl
-cd manga_dl
-```
+Deploy manga_dl using the docker-compose example provided.
 
-Install the requirements
-```bash
-pip install -r requirements.txt
-```
-
-Run manga_dl.py
-```bash
-python3 manga_dl.py -m <manga> [optional] -s </path/to/manga/folder>
-```
-
-`manga` is the the url of the manga from ether [manhuaes.com](https://manhuaes.com/) [manhuaaz.com](https://manhuaaz.com/) [manhuaus.com](https://manhuaus.com/) [mangaread.com](https://mangaread.com/) [webtoons.com](https://webtoons.com/) websites. Please see `manga.example.txt` for an example of what is required.
-
-`manga` can also accept a txt file containing a list of names
-see [manga.txt](https://github.com/thezak48/manga_dl/blob/main/data/manga.example.txt) for an example of the file, to use it just do
-```bash
-python3 manga_dl.py -m <manga.txt> [optional] -s </path/to/manga/folder>
-```
-
-### Config File
+## Config File
 
 1. Create a `config.ini` file in the data directory. See the `config.example.ini` file
-2. If no arguments are passed when running `manga_dl.py`, the default values from the `config.ini` file will be used. If arguments are passed, they will override the default values.
-3. To use just do
-   ```bash
-    python3 manga_dl.py
-   ```
+2. If no `config.ini` file exists when running, manga_dl will make the file and defaults will be used.
 
-### Advanced Usage
-There is an optional argument to enable the ability to download all pages of a chapter at once. Just pass the arg `-mt` after the `manga` for example
+### Config Options
 
-```bash
-python3 manga_dl.py -m <manga> -mt -s </path/to/manga/folder>
-```
 
-#### Run as Systemd Service
-1. Edit the `User`, `Group`, `WorkingDirectory` and `ExecStart` in `manga_dl.service` to the correct values<br/>
-2. Copy `manga_dl.service` and `manga_dl.timer` to `/etc/systemd/system/`
-3. Execute these commands to enable the service and timer:
-```bash
-sudo systemctl daemon-reload
-sudo systemctl enable manga_dl.service
-sudo systemctl start manga_dl.service
-sudo systemctl enable manga_dl.timer
-sudo systemctl start manga_dl.timer
-```
-You can check if the timer is running with `sudo systemctl list-timers` and it should show something like this:
-`Mon 2023-11-19 23:51:49 CEST 3min 1s left  n/a                          n/a                manga_dl.timer      manga_dl.service`
+`mangas` is the path to the txt file containing a list of urls of the manga from any of the supported websites. Please see `manga.example.txt` for an example of what is required.
+
+`multi_threaded` this enables mulit threaded chapter donwloads, the number of chapters downloaded at once is defined by `num_threads`
+
+`save_location` Location of where the mangas are saved to once downloaded
