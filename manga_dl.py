@@ -46,65 +46,19 @@ class GracefulThreadPoolExecutor(concurrent.futures.ThreadPoolExecutor):
         super().submit(fn, *args, **kwargs)
 
 
-if os.path.exists("/.dockerenv"):
-    config_path = "/config"
-else:
-    config_path = os.path.dirname(__file__), "data"
+log = setup_logging()
 
-log = setup_logging(config_path)
-
-config = ConfigHandler(log, os.path.join(config_path, "config.ini"))
-
-if config.has_option("General", "driver_path"):
-    driver_path = config.get("General", "driver_path")
-else:
-    driver_path = "/usr/bin/chromedriver"
+config = ConfigHandler(log, os.path.join("/config", "config.ini"))
 
 parser = argparse.ArgumentParser(
     description="Download download manga's, manhua's or manhwa's",
-    usage="%(prog)s manga [options] save_location",
-)
-parser.add_argument(
-    "-m",
-    "--manga",
-    type=str,
-    nargs="?",
-    default=config.get("General", "mangas"),
-    help="The name and path of the file containing the manga URLs or the URL of the manga",
-)
-parser.add_argument(
-    "-mt",
-    "--multi_threaded",
-    action="store_true",
-    default=config.getboolean("General", "multi_threaded"),
-    help="Enable multi-threading",
-)
-parser.add_argument(
-    "-nt",
-    "--num_threads",
-    type=int,
-    default=config.getint("General", "num_threads"),
-    help="Number of threads to use in case of multi-threading",
+    usage="%(prog)s [options]",
 )
 parser.add_argument(
     "-r",
     "--run",
     action="store_true",
     help="Run the script once and exit",
-)
-parser.add_argument(
-    "-sch",
-    "--schedule",
-    default="1440",
-    type=str,
-    help="Schedule to run every x minutes. (Default set to 1440 (1 day))",
-)
-parser.add_argument(
-    "-s",
-    "--save_location",
-    type=str,
-    default=config.get("General", "save_location"),
-    help="The location where the manga should be saved",
 )
 args = parser.parse_args()
 
@@ -122,7 +76,7 @@ def get_website_class(url: str):
     elif "webtoons.com" in url:
         return Webtoons(log)
     elif "kaiscans.com" in url:
-        return Kaiscans(log, driver_path)
+        return Kaiscans(log)
     elif (
         "mangakakalot.com" in url
         or "chapmanganato.com" in url
@@ -133,17 +87,19 @@ def get_website_class(url: str):
         raise ValueError(f"Unsupported website: {url}")
 
 
-save_location = args.save_location
-multi_threaded = args.multi_threaded
-schedule = args.schedule
+mangas = config.get("General", "mangas")
+save_location = config.getboolean("General", "save_location")
+multi_threaded = config.getboolean("General", "multi_threaded")
+num_threads = config.getint("General", "num_threads")
+schedule = config.getint("General", "schedule")
 
 
 def download_manga():
-    if os.path.isfile(args.manga):
-        with open(args.manga, "r", encoding="utf-8") as f:
+    if os.path.isfile(mangas):
+        with open(mangas, "r", encoding="utf-8") as f:
             manga_urls = [line.strip().rstrip("/") for line in f]
     else:
-        manga_urls = [args.manga.rstrip("/")]
+        manga_urls = [mangas.rstrip("/")]
 
     progress = Progress()
     try:
@@ -176,7 +132,7 @@ def download_manga():
 
                     if multi_threaded:
                         with concurrent.futures.ThreadPoolExecutor(
-                            max_workers=args.num_threads
+                            max_workers=num_threads
                         ) as executor:
                             futures = []
                             for chapter_number, chapter_url in chapters:

@@ -41,9 +41,11 @@ class Kaiscans:
     }
     headers_image = base_headers
 
-    def __init__(self, logger, driver_path):
+    def __init__(
+        self,
+        logger,
+    ):
         self.logger = logger
-        self.driver_path = driver_path
 
     def get_manga_id(self, manga_name: str):
         """Get the series title for a given URL."""

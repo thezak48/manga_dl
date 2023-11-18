@@ -10,7 +10,7 @@ from rich.console import Console
 from rich.logging import RichHandler
 
 
-def setup_logging(config_path):
+def setup_logging():
     """Setup logging."""
     sys.stdout.reconfigure(encoding="utf-8")
     console = Console()
@@ -24,7 +24,7 @@ def setup_logging(config_path):
 
     current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     log_filename = f"manga_dl_{current_time}.log"
-    log_dir = f"{config_path}/logs"
+    log_dir = "/config/logs"
     os.makedirs(log_dir, exist_ok=True)
     log_filepath = os.path.join(log_dir, log_filename)
     file_handler = RotatingFileHandler(
