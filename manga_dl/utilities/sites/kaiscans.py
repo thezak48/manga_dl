@@ -26,14 +26,6 @@ class Kaiscans:
     """
 
     base_headers = {
-        "authority": "kaiscans.com",
-        "accept-language": "en-US,en;q=0.9,es-US;q=0.8,es;q=0.7,en-GB-oxendict;q=0.6",
-        "cache-control": "no-cache",
-        "pragma": "no-cache",
-        "sec-ch-ua": '"Chromium";v="118", "Google Chrome";v="118", "Not=A?Brand";v="99"',
-        "sec-ch-ua-mobile": "?0",
-        "sec-ch-ua-platform": '"Windows"',
-        "sec-fetch-site": "none",
         "user-agent": (
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
             "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36"
@@ -47,91 +39,119 @@ class Kaiscans:
     ):
         self.logger = logger
 
-    def get_manga_id(self, manga_name: str):
+    def get_manga_title(self, manga_url):
         """Get the series title for a given URL."""
-        response = requests.get(manga_name, headers=self.base_headers, timeout=30)
-        if response.status_code == 200:
-            soup = BeautifulSoup(response.text, "html.parser")
-            node = soup.find("div", {"id": "titlemove"})
-            title = node.h1
-            return manga_name, title.text.lstrip().rstrip()
-        self.logger.error(f"Status code: {response.status_code}")
+        try:
+            self.logger.info(f"Fetching manga title for {manga_url}")
+            response = requests.get(manga_url, headers=self.base_headers, timeout=30)
+
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.text, "html.parser")
+                node = soup.find("div", {"id": "titlemove"})
+                title = node.h1
+
+                return title.text.lstrip().rstrip()
+
+        except Exception as e:
+            self.logger.error(f"Unable to fetch manga title for {manga_url}")
+            self.logger.error(e)
+
         return None
 
-    def get_manga_chapters(self, manga_id: str):
+    def get_manga_chapters(self, manga_url):
         """
         Get the manga chapters for a given manga ID.
         """
-        result = requests.get(
-            manga_id,
-            headers=self.base_headers,
-            timeout=30,
-        )
+        try:
+            self.logger.info(f"Fetching manga chapters for {manga_url}")
+            title = self.get_manga_title(manga_url)
+            result = requests.get(
+                manga_url,
+                headers=self.base_headers,
+                timeout=30,
+            )
 
-        if result.status_code == 200:
-            soup = BeautifulSoup(result.text, "html.parser")
-            chapters = []
+            if result.status_code == 200:
+                soup = BeautifulSoup(result.text, "html.parser")
+                chapters = []
 
-            for li in soup.find("div", class_="eplister").find_all("li"):
-                chapter_number = li.get("data-num")
-                url = li.find("a").get("href")
-                chapters.append((chapter_number, url))
+                for li in soup.find("div", class_="eplister").find_all("li"):
+                    chapter_number = li.get("data-num")
+                    url = li.find("a").get("href")
+                    chapters.append((chapter_number, url))
 
-            chapters = sorted(chapters, key=lambda x: float(x[0]))
+                chapters = sorted(chapters, key=lambda x: float(x[0]))
 
-            return chapters
+                return chapters, title
 
-        return None
+        except Exception as e:
+            self.logger.error(f"Unable to fetch manga chapters for {manga_url}")
+            self.logger.error(e)
 
-    def get_chapter_images(self, url: str):
+            return None
+
+    def get_chapter_images(self, chapter_url):
         """
         Get the manga chapter images for a given chapter URL.
         """
-        options = webdriver.ChromeOptions()
-        options.add_argument("headless")
-        options.add_argument("no-sandbox")
-        options.add_argument("disable-dev-shm-usage")
-        options.add_argument("user-data-dir=/config/.cache/selenium")
-        driver = webdriver.Chrome(options=options)
-        driver.get(url)
+        try:
+            self.logger.info(f"Fetching chapter images for {chapter_url}")
 
-        sleep(5)
+            options = webdriver.ChromeOptions()
+            options.add_argument("headless")
+            options.add_argument("no-sandbox")
+            options.add_argument("disable-dev-shm-usage")
+            options.add_argument("user-data-dir=/config/.cache/selenium")
+            driver = webdriver.Chrome(options=options)
+            driver.get(chapter_url)
 
-        soup = BeautifulSoup(driver.page_source, "html.parser")
+            sleep(5)
 
-        image_nodes = soup.find("div", id="readerarea").find_all("img")
-        images = []
-        for image_node in image_nodes:
-            data_src = image_node.get("data-src")
-            if data_src:
-                images.append(data_src.strip())
-            else:
-                images.append(image_node["src"].strip())
+            soup = BeautifulSoup(driver.page_source, "html.parser")
 
-        driver.quit()
+            image_nodes = soup.find("div", id="readerarea").find_all("img")
+            images = []
+            for image_node in image_nodes:
+                data_src = image_node.get("data-src")
+                if data_src:
+                    images.append(data_src.strip())
+                else:
+                    images.append(image_node["src"].strip())
 
-        return images
+            driver.quit()
 
-    def get_manga_metadata(self, manga_url: str):
+            return images
+        except Exception as e:
+            self.logger.error(f"Unable to fetch chapter images for {chapter_url}")
+            self.logger.error(e)
+
+            return None
+
+    def get_manga_metadata(self, manga_url):
         """
         Get the manga metadata for a given manga name.
         """
-        result = requests.get(
-            manga_url,
-            headers=self.base_headers,
-            timeout=30,
-        )
+        try:
+            self.logger.info(f"Fetching manga metadata for {manga_url}")
+            result = requests.get(
+                manga_url,
+                headers=self.base_headers,
+                timeout=30,
+            )
 
-        if result.status_code == 200:
-            soup = BeautifulSoup(result.text, "html.parser")
+            if result.status_code == 200:
+                soup = BeautifulSoup(result.text, "html.parser")
 
-            genres_content = soup.find("div", {"class": "wd-full"})
-            genres = [a.text for a in genres_content.find_all("a")]
+                genres_content = soup.find("div", {"class": "wd-full"})
+                genres = [a.text for a in genres_content.find_all("a")]
 
-            summary_content = soup.find("div", {"itemprop": "description"})
-            summary = summary_content.p.text
+                summary_content = soup.find("div", {"itemprop": "description"})
+                summary = summary_content.p.text
 
-            return genres, summary
+                return genres, summary
 
-        self.logger.error("unable to fetch the manga metadata")
-        return None
+        except Exception as e:
+            self.logger.error("unable to fetch the manga metadata")
+            self.logger.error(e)
+
+            return None

@@ -44,74 +44,92 @@ class Webtoons:
     def __init__(self, logger):
         self.logger = logger
 
-    def get_manga_id(self, manga_name):
+    def get_manga_title(self, manga_url):
         """Get the series title for a given URL."""
-        manga_id = manga_name
-        response = requests.get(manga_id, timeout=30)
-        soup = BeautifulSoup(response.text, "html.parser")
-        title_id = (
-            soup.find(class_="subj")
-            .get_text(separator=" ")
-            .replace("\n", "")
-            .replace("\t", "")
-        )
-        return manga_id, title_id
+        try:
+            self.logger.info(f"Fetching manga title for {manga_url}")
+            response = requests.get(manga_url, timeout=30)
+            soup = BeautifulSoup(response.text, "html.parser")
+            title = (
+                soup.find(class_="subj")
+                .get_text(separator=" ")
+                .replace("\n", "")
+                .replace("\t", "")
+            )
+            return title
+        except Exception as e:
+            self.logger.error("Unable to find the manga title")
+            self.logger.error(e)
+            return None
 
-    def get_chapter_viewer_url(self, manga_id):
+    def get_chapter_viewer_url(self, manga_url):
         """Get the chapter viewer URL for a given URL."""
-        response = requests.get(manga_id, timeout=30)
-        soup = BeautifulSoup(response.text, "html.parser")
-        chapter_viewer = soup.find("li", {"class": "_episodeItem"})
-        if chapter_viewer:
-            viewer_url = chapter_viewer.find("a")
-            return viewer_url.get("href") if viewer_url else None
-        return None
+        try:
+            self.logger.info(f"Fetching chapter viewer URL for {manga_url}")
+            response = requests.get(manga_url, timeout=30)
+            soup = BeautifulSoup(response.text, "html.parser")
+            chapter_viewer = soup.find("li", {"class": "_episodeItem"})
+            if chapter_viewer:
+                viewer_url = chapter_viewer.find("a")
+                return viewer_url.get("href") if viewer_url else None
+        except Exception as e:
+            self.logger.error("Unable to find the chapter viewer URL")
+            self.logger.error(e)
+            return None
 
-    def get_first_chapter_episode_no(self, manga_id):
+    def get_first_chapter_episode_no(self, manga_url):
         """
         Get the first chapter episode number for a given manga ID.
         """
         try:
-            response = requests.get(manga_id, timeout=30)
+            response = requests.get(manga_url, timeout=30)
             soup = BeautifulSoup(response.text, "html.parser")
             href = soup.find("a", id="_btnEpisode")["href"]
             return int(parse_qs(urlparse(href).query)["episode_no"][0])
         except (TypeError, KeyError):
-            response = requests.get(f"{manga_id}&page=9999", timeout=30)
+            response = requests.get(f"{manga_url}&page=9999", timeout=30)
             soup = BeautifulSoup(response.text, "html.parser")
             return min(
                 int(episode["data-episode-no"])
                 for episode in soup.find_all("li", {"class": "_episodeItem"})
             )
 
-    def get_manga_chapters(self, manga_id):
+    def get_manga_chapters(self, manga_url):
         """
         Get the manga chapters for a given manga ID.
         """
-        first_chapter = self.get_first_chapter_episode_no(manga_id)
-        viewer_url = self.get_chapter_viewer_url(manga_id)
-        if viewer_url:
-            parsed = urlparse(viewer_url)
-            params = parse_qs(parsed.query)
-            episode_no = int(params.get("episode_no", [None])[0])
-            chapters = []
+        try:
+            self.logger.info(f"Fetching manga chapters for {manga_url}")
+            title = self.get_manga_title(manga_url)
+            first_chapter = self.get_first_chapter_episode_no(manga_url)
+            viewer_url = self.get_chapter_viewer_url(manga_url)
+            if viewer_url:
+                parsed = urlparse(viewer_url)
+                params = parse_qs(parsed.query)
+                episode_no = int(params.get("episode_no", [None])[0])
+                chapters = []
 
-            for i in range(first_chapter, episode_no + 1):
-                chapter_viewer_url = viewer_url.replace(
-                    f"/episode-{params['episode_no'][0]}", f"/episode-{i}"
-                ).replace(f"&episode_no={params['episode_no'][0]}", f"&episode_no={i}")
-                chapters.append((i, chapter_viewer_url))
+                for i in range(first_chapter, episode_no + 1):
+                    chapter_viewer_url = viewer_url.replace(
+                        f"/episode-{params['episode_no'][0]}", f"/episode-{i}"
+                    ).replace(
+                        f"&episode_no={params['episode_no'][0]}", f"&episode_no={i}"
+                    )
+                    chapters.append((i, chapter_viewer_url))
 
-            return chapters
+                return chapters, title
 
-        return None
+        except Exception as e:
+            self.logger.error("Unable to find the manga chapters")
+            self.logger.error(e)
+            return None
 
-    def get_chapter_images(self, url: str):
+    def get_chapter_images(self, chapter_url):
         """
         Get the manga chapter images for a given chapter URL.
         """
         result = requests.get(
-            url=url,
+            chapter_url,
             headers=self.headers,
             timeout=30,
         )
@@ -128,12 +146,12 @@ class Webtoons:
 
             return images
 
-    def get_manga_metadata(self, manga_name: str):
+    def get_manga_metadata(self, manga_url):
         """
         Get the manga metadata for a given manga name.
         """
         result = requests.get(
-            url=manga_name,
+            manga_url,
             headers=self.headers,
             timeout=30,
         )
