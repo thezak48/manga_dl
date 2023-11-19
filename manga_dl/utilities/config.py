@@ -34,6 +34,7 @@ class ConfigHandler:
             "multi_threaded": "True",
             "num_threads": "10",
             "save_location": "./data/manga",
+            "schedule": "720",
         }
 
         with open(self.path, "w") as configfile:
