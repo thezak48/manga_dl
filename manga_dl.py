@@ -230,9 +230,9 @@ def main():
                     "Schedule Mode: Script will run every %s minutes.", schedule
                 )
                 download_manga()
-                _, next_run = calc_next_run(int(args.schedule), write_out=True)
+                _, next_run = calc_next_run(int(schedule), write_out=True)
                 log.info(next_run["next_run_str"])
-                time.sleep(int(args.schedule) * 60)
+                time.sleep(int(schedule) * 60)
     except KeyboardInterrupt:
         Progress().exit()
         sys.exit(0)
