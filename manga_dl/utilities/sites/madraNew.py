@@ -39,7 +39,7 @@ class MadraNew:
                 return title.text.lstrip().rstrip()
 
         except Exception as e:
-            self.logger.error("Unable to find the manga title")
+            self.logger.error(f"Unable to find the manga title on {manga_url}")
             self.logger.error(e)
 
             return None
@@ -79,7 +79,7 @@ class MadraNew:
                 return chapters, title
 
         except Exception as e:
-            self.logger.error("Unable to find the manga chapters")
+            self.logger.error(f"Unable to find the manga chapters on {manga_url}")
             self.logger.error(e)
 
             return None
@@ -103,7 +103,7 @@ class MadraNew:
                 return images
 
         except Exception as e:
-            self.logger.error("Unable to find the chapter images")
+            self.logger.error(f"Unable to find the chapter images on {chapter_url}")
             self.logger.error(e)
 
             return None
@@ -129,7 +129,7 @@ class MadraNew:
                 return genres, summary
 
         except Exception as e:
-            self.logger.error("Unable to find the manga metadata")
+            self.logger.error(f"Unable to find the manga metadata on {manga_url}")
             self.logger.error(e)
 
             return None
