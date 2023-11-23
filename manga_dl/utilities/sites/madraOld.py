@@ -114,11 +114,14 @@ class MadraOld:
 
             if result.status_code == 200:
                 soup = BeautifulSoup(result.text, "html.parser")
-                node = soup.find("div", {"class": "reading-content"})
-                image_nodes = node.find_all("img")
+                nodes = soup.find("div", {"class": "reading-content"})
                 images = []
-                for image_node in image_nodes:
-                    images.append(image_node["data-src"].lstrip().rstrip())
+
+                for img in nodes.find_all("img"):
+                    if "data-src" in img.attrs:
+                        images.append(img["data-src"].strip())
+                    elif "src" in img.attrs:
+                        images.append(img["src"].strip())
 
                 return images
 
