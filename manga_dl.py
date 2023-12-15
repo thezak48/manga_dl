@@ -65,7 +65,7 @@ def get_website_class(url: str):
     """Return the class for the website based on the URL."""
     if "manhuaes.com" in url or "manhuaaz.com" in url:
         return MadraOld(log)
-    elif "manhuaus.com" in url or "mangaread.org" in url:
+    elif "manhuaus.com" in url or "mangaread.org" in url or "lhtranslation.net" in url:
         return MadraNew(log)
     elif "webtoons.com" in url:
         return Webtoons(log)

@@ -7,6 +7,7 @@ This is designed to download manga's direct from ether
 - [kaiscans.com](https://kaiscans.com/)
 - [mangakaklot.com](https://mangakakalot.com/)
 - [webtoons.com](https://webtoons.com/)
+- [lhtranslation.net](https://lhtranslation.net/)
 
 ## Usage
 
