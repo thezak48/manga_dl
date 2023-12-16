@@ -3,11 +3,13 @@ This is designed to download manga's direct from ether
 - [manhuaes.com](https://manhuaes.com/)
 - [manhuaaz.com](https://manhuaaz.com/)
 - [manhuaus.com](https://manhuaus.com/)
+- [manhuaus.org](https://manhuaus.org/)
 - [mangaread.org](https://mangaread.org/)
 - [kaiscans.com](https://kaiscans.com/)
 - [mangakaklot.com](https://mangakakalot.com/)
 - [webtoons.com](https://webtoons.com/)
 - [lhtranslation.net](https://lhtranslation.net/)
+- [topmanhua.com](https://topmanhua.com)
 
 ## Usage
 
