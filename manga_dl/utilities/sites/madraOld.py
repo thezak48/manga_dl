@@ -21,7 +21,6 @@ class MadraOld:
     headers_post.update({})
 
     headers_image = base_headers.copy()
-    headers_image.update({})
 
     def __init__(self, logger):
         self.logger = logger

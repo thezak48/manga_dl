@@ -107,6 +107,8 @@ def download_manga():
 
             for manga_url in manga_urls:
                 manga = get_website_class(manga_url)
+                headers_image = manga.headers_image
+                headers_image.update({"referer": f"{manga_url}"})
 
                 chapters, title = manga.get_manga_chapters(manga_url)
                 chapter_task = progress.add_task(
@@ -140,7 +142,7 @@ def download_manga():
                             futures.append(
                                 executor.submit(
                                     ImageDownloader(
-                                        log, manga.headers_image
+                                        log, headers_image
                                     ).download_chapter,
                                     chapter_number,
                                     images,
@@ -166,7 +168,7 @@ def download_manga():
                             continue
 
                         images = manga.get_chapter_images(chapter_url)
-                        ImageDownloader(log, manga.headers_image).download_chapter(
+                        ImageDownloader(log, headers_image).download_chapter(
                             chapter_number,
                             images,
                             title,
