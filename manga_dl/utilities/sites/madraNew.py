@@ -30,9 +30,14 @@ class MadraNew:
             result = requests.get(manga_url, headers=self.base_headers, timeout=30)
 
             if result.status_code == 200:
-                soup = BeautifulSoup(result.text, "html.parser")
-                node = soup.find("div", {"class": "post-title"})
-                title = node.h1
+                if "setsuscans.com" in manga_url:
+                    soup = BeautifulSoup(result.text, "html.parser")
+                    node = soup.find("div", {"id": "manga-title"})
+                    title = node.h1
+                else:
+                    soup = BeautifulSoup(result.text, "html.parser")
+                    node = soup.find("div", {"class": "post-title"})
+                    title = node.h1
 
                 self.logger.debug("Found the following title: %s", title.text)
                 return title.text.lstrip().rstrip()
