@@ -12,6 +12,7 @@ This is designed to download manga's direct from ether
 - [topmanhua.com](https://topmanhua.com)
 - [ksgroupscans.com](https://ksgroupscans.com)
 - [gdscans.com](https://gdscans.com)
+- [setsuscans.com](https://setsuscans.com)
 
 ## Usage
 
