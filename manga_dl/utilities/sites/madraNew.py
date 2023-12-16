@@ -131,4 +131,7 @@ class MadraNew:
             self.logger.error(f"Unable to find the manga metadata on {manga_url}")
             self.logger.error(e)
 
-            return None
+            genres = []
+            summary = []
+
+            return genres, summary
