@@ -11,6 +11,7 @@ This is designed to download manga's direct from ether
 - [lhtranslation.net](https://lhtranslation.net/)
 - [topmanhua.com](https://topmanhua.com)
 - [ksgroupscans.com](https://ksgroupscans.com)
+- [gdscans.com](https://gdscans.com)
 
 ## Usage
 
