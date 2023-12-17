@@ -68,6 +68,9 @@ class MadraNew:
                     chapter_number_raw = url.split("/chapter-")[-1].split("/")[0]
                     number_parts = re.findall(r"\d+", chapter_number_raw)
 
+                    if not number_parts:
+                        continue
+
                     if len(number_parts) >= 2:
                         chapter_number = float(f"{number_parts[0]}.{number_parts[1]}")
                     else:
