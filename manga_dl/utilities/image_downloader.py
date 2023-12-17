@@ -1,10 +1,8 @@
 """Download images helper"""
 import os
 import re
-import requests
-import shutil
 import time
-
+import shutil
 import requests
 
 from manga_dl.utilities.file_handler import FileHandler
@@ -101,20 +99,29 @@ class ImageDownloader:
                 self.logger.error("Failed to report download status to MangaDex.")
 
     def download_images(
-        self, images, title_id, chapter, save_location, progress, download_task
+        self,
+        images,
+        title_id,
+        sanitized_title_id,
+        chapter,
+        save_location,
+        progress,
+        download_task,
     ):
         """
         Download images for a given manga chapter.
         """
-        complete_dir = os.path.join(save_location, title_id)
+        complete_dir = os.path.join(save_location, sanitized_title_id)
         if not os.path.exists(complete_dir):
             os.makedirs(complete_dir)
 
-        tmp_path = os.path.join(save_location, "tmp", title_id, f"Ch. {chapter}")
+        tmp_path = os.path.join(
+            save_location, "tmp", sanitized_title_id, f"Ch. {chapter}"
+        )
         if not os.path.exists(tmp_path):
             os.makedirs(tmp_path)
 
-        self.logger.info("Downloading %s Ch. %s", title_id, chapter)
+        self.logger.info("Downloading %s Ch. %s", sanitized_title_id, chapter)
 
         results = []
         for i, image_url in enumerate(images):
@@ -148,6 +155,7 @@ class ImageDownloader:
         x,
         images,
         title_id,
+        sanitized_title_id,
         save_location,
         progress,
         genres,
@@ -162,6 +170,7 @@ class ImageDownloader:
         completed = self.download_images(
             images,
             title_id,
+            sanitized_title_id,
             chapter=x,
             save_location=save_location,
             progress=progress,
@@ -173,18 +182,22 @@ class ImageDownloader:
                 series=title_id,
                 genres=genres,
                 summary=summary,
-                comic_info_path=os.path.join(save_location, "tmp", title_id),
+                comic_info_path=os.path.join(save_location, "tmp", sanitized_title_id),
             )
             FileHandler(self.logger).make_cbz(
-                directory_path=os.path.join(save_location, "tmp", title_id, f"Ch. {x}"),
+                directory_path=os.path.join(
+                    save_location, "tmp", sanitized_title_id, f"Ch. {x}"
+                ),
                 compelte_dir=complete_dir,
                 output_path=f"{x}.cbz",
                 comic_info_path=os.path.join(
-                    save_location, "tmp", title_id, "ComicInfo.xml"
+                    save_location, "tmp", sanitized_title_id, "ComicInfo.xml"
                 ),
             )
             FileHandler(self.logger).cleanup(
-                directory_path=os.path.join(save_location, "tmp", title_id, f"Ch. {x}")
+                directory_path=os.path.join(
+                    save_location, "tmp", sanitized_title_id, f"Ch. {x}"
+                )
             )
             self.logger.info("done zipping: Ch. %s", x)
             progress.remove_task(download_task)

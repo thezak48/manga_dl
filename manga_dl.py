@@ -7,24 +7,23 @@ Usage:
 import argparse
 import concurrent.futures
 import os
+import re
 import signal
 import sys
 import time
+from datetime import datetime, timedelta
 from urllib.parse import unquote, urlparse
-from datetime import datetime
-from datetime import timedelta
 
-
-from manga_dl.utilities.logging import setup_logging
 from manga_dl.utilities.config import ConfigHandler
 from manga_dl.utilities.image_downloader import ImageDownloader
+from manga_dl.utilities.logging import setup_logging
 from manga_dl.utilities.progress import Progress
-from manga_dl.utilities.sites.webtoons import Webtoons
 from manga_dl.utilities.sites.kaiscans import Kaiscans
-from manga_dl.utilities.sites.mangakakalot import Mangakakalot
 from manga_dl.utilities.sites.madraNew import MadraNew
 from manga_dl.utilities.sites.madraOld import MadraOld
 from manga_dl.utilities.sites.mangadex import Mangadex
+from manga_dl.utilities.sites.mangakakalot import Mangakakalot
+from manga_dl.utilities.sites.webtoons import Webtoons
 
 
 class GracefulThreadPoolExecutor(concurrent.futures.ThreadPoolExecutor):
@@ -93,6 +92,14 @@ def get_website_class(url: str):
         raise ValueError(f"Unsupported website: {url}")
 
 
+def sanitize_title(title):
+    """Sanitize title id for file path."""
+    invalid_chars = r'[\\/*?:"<>|]'
+    sanitized_title = re.sub(invalid_chars, "_", title)
+
+    return sanitized_title
+
+
 mangas = config.get("General", "mangas")
 save_location = config.get("General", "save_location")
 multi_threaded = config.getboolean("General", "multi_threaded")
@@ -101,6 +108,7 @@ schedule = config.getint("General", "schedule")
 
 
 def download_manga():
+    """Download manga's, manhua's or manhwa's."""
     with open(mangas, "r", encoding="utf-8") as f:
         manga_urls = [line.strip().rstrip("/") for line in f]
     try:
@@ -121,8 +129,9 @@ def download_manga():
                     f"Downloading chapters for {title}", total=len(chapters)
                 )
                 genres, summary = manga.get_manga_metadata(manga_url)
+                sanitized_title = sanitize_title(title)
 
-                complete_dir = os.path.join(save_location, title)
+                complete_dir = os.path.join(save_location, sanitized_title)
                 existing_chapters = (
                     set(os.listdir(complete_dir))
                     if os.path.exists(complete_dir)
@@ -153,6 +162,7 @@ def download_manga():
                                     chapter_number,
                                     images,
                                     title,
+                                    sanitized_title,
                                     save_location,
                                     progress,
                                     genres,
@@ -178,6 +188,7 @@ def download_manga():
                             chapter_number,
                             images,
                             title,
+                            sanitized_title,
                             save_location,
                             progress,
                             genres,
