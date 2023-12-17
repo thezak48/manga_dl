@@ -1,5 +1,7 @@
 """Download images helper"""
 import os
+import re
+import requests
 import shutil
 import time
 
@@ -26,6 +28,10 @@ class ImageDownloader:
         """
         Download a single image.
         """
+        start_time = time.time()
+        image_size = 0
+        success = False
+
         if "webtoons" in image:
             image_name = os.path.basename(image).split("_")[-1]
             webtoons_path = os.path.join(tmp_path, image_name)
@@ -59,6 +65,9 @@ class ImageDownloader:
                     timeout=30,
                 )
                 if result.status_code == 200:
+                    success = True
+                    image_size = len(result.content)
+                    elapsed_time = (time.time() - start_time) * 1000
                     writer.write(result.content)
                     progress.update(download_task, advance=1)
                     self.logger.info("Downloaded Ch. %s image: %s", chapter, image)
@@ -72,61 +81,65 @@ class ImageDownloader:
                         chapter,
                         result.status_code,
                     )
+                    success = False
+                    elapsed_time = (time.time() - start_time) * 1000
                     return False
 
+        if re.match(r".*/data/(?P<chapter_hash>[^/]+)/(?P<filename>.+)$", image):
+            cached = result.headers.get("X-Cache", "").startswith("HIT")
+            report_data = {
+                "url": image,
+                "success": success,
+                "cached": cached,
+                "bytes": image_size,
+                "duration": elapsed_time,
+            }
+            report_response = requests.post(
+                "https://api.mangadex.network/report", json=report_data, timeout=30
+            )
+            if report_response.status_code != 200:
+                self.logger.error("Failed to report download status to MangaDex.")
+
     def download_images(
-        self,
-        images: list,
-        title_id: str,
-        chapter,
-        save_location: str,
-        progress,
-        download_task,
+        self, images, title_id, chapter, save_location, progress, download_task
     ):
         """
         Download images for a given manga chapter.
         """
-        compelte_dir = os.path.join(save_location, title_id)
-        if not os.path.exists(compelte_dir):
-            os.makedirs(compelte_dir)
+        complete_dir = os.path.join(save_location, title_id)
+        if not os.path.exists(complete_dir):
+            os.makedirs(complete_dir)
 
         tmp_path = os.path.join(save_location, "tmp", title_id, f"Ch. {chapter}")
-        completed = True
-
         if not os.path.exists(tmp_path):
             os.makedirs(tmp_path)
 
-        self.logger.info("downloading %s Ch. %s", title_id, chapter)
-        paths = [
-            os.path.join(tmp_path, f"{str(x).zfill(3)}.jpg") for x in range(len(images))
-        ]
+        self.logger.info("Downloading %s Ch. %s", title_id, chapter)
 
         results = []
+        for i, image_url in enumerate(images):
+            match = re.match(
+                r".*/data/(?P<chapter_hash>[^/]+)/(?P<filename>.+)$", image_url
+            )
+            if match:
+                file_extension = os.path.splitext(match.group("filename"))[1]
+                image_name = f"{str(i+1).zfill(3)}{file_extension}"
+            else:
+                image_name = os.path.basename(image_url)
 
-        for i, image in enumerate(images):
-            image_path = paths[i]
+            image_path = os.path.join(tmp_path, image_name)
 
-            start_time = time.time()
             image_size = self.download_image(
-                chapter, image, image_path, progress, download_task, tmp_path
+                chapter, image_url, image_path, progress, download_task, tmp_path
             )
-            elapsed_time = time.time() - start_time
-
-            download_speed = (
-                (image_size / elapsed_time) / 1024 if elapsed_time > 0 else 0
-            )
-            progress.progress.tasks[download_task].fields[
-                "speed"
-            ] = f"{download_speed:.2f}"
-
             if image_size:
                 results.append(True)
             else:
                 results.append(False)
 
-        if not all(results):
+        completed = all(results)
+        if not completed:
             self.logger.error("Incomplete download of %s Ch. %s", title_id, chapter)
-            completed = False
 
         return completed
 

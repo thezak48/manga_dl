@@ -24,6 +24,7 @@ from manga_dl.utilities.sites.kaiscans import Kaiscans
 from manga_dl.utilities.sites.mangakakalot import Mangakakalot
 from manga_dl.utilities.sites.madraNew import MadraNew
 from manga_dl.utilities.sites.madraOld import MadraOld
+from manga_dl.utilities.sites.mangadex import Mangadex
 
 
 class GracefulThreadPoolExecutor(concurrent.futures.ThreadPoolExecutor):
@@ -86,6 +87,8 @@ def get_website_class(url: str):
         or "readmanganato.com" in url
     ):
         return Mangakakalot(log)
+    elif "mangadex.org" in url:
+        return Mangadex(log)
     else:
         raise ValueError(f"Unsupported website: {url}")
 

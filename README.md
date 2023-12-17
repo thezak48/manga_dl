@@ -13,6 +13,7 @@ This is designed to download manga's direct from ether
 - [ksgroupscans.com](https://ksgroupscans.com)
 - [gdscans.com](https://gdscans.com)
 - [setsuscans.com](https://setsuscans.com)
+- [mangadex.org](https://mangadex.org)
 
 ## Usage
 
