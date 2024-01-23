@@ -98,6 +98,26 @@ class ImageDownloader:
             if report_response.status_code != 200:
                 self.logger.error("Failed to report download status to MangaDex.")
 
+    def sanitize_filename(self, filename):
+        """Sanitize a string to be safe for use as a filename."""
+        # Define a pattern to capture the file extension for common image files
+        pattern = re.compile(
+            r"(.*)(\.(jpg|jpeg|png|gif|bmp|webp))(\?.*)?", re.IGNORECASE
+        )
+
+        # Use the pattern to search for matches in the filename
+        match = pattern.search(filename)
+        if match:
+            # Construct the sanitized filename using the captured groups
+            sanitized = match.group(1) + match.group(2)
+        else:
+            # If no match, return the original filename (or handle as needed)
+            sanitized = filename
+
+        # Replace any remaining invalid characters with an underscore
+        sanitized = re.sub(r'[<>:"/\\|?*]', "_", sanitized)
+        return sanitized
+
     def download_images(
         self,
         images,
@@ -130,9 +150,10 @@ class ImageDownloader:
             )
             if match:
                 file_extension = os.path.splitext(match.group("filename"))[1]
-                image_name = f"{str(i+1).zfill(3)}{file_extension}"
+                image = f"{str(i+1).zfill(3)}{file_extension}"
+                image_name = self.sanitize_filename(os.path.basename(image))
             else:
-                image_name = os.path.basename(image_url)
+                image_name = self.sanitize_filename(os.path.basename(image_url))
 
             image_path = os.path.join(tmp_path, image_name)
 
