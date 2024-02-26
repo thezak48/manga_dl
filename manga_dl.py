@@ -76,6 +76,7 @@ def get_website_class(url: str):
         or "ksgroupscans.com" in url
         or "gdscans.com" in url
         or "setsuscans.com" in url
+        or "manhwaclan.com" in url
     ):
         return MadraNew(log)
     elif "webtoons.com" in url:
