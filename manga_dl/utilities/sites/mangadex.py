@@ -61,7 +61,7 @@ class Mangadex:
             return None
 
     def get_manga_chapters(self, manga_url):
-        """Get the manga chapters from the manga url"""
+        """Get the manga chapters from the manga url, ensuring one version per chapter"""
         chapters = []
 
         try:
@@ -84,16 +84,16 @@ class Mangadex:
                 break
 
             data = result.json()
+            chapter_dict = {}
             for chap in data.get("data", []):
-                if "chapter" in chap["attributes"]:
-                    chapter_number = chap["attributes"]["chapter"]
-                    id = chap["id"]
-                    chapters.append((chapter_number, id))
+                chapter_number = chap["attributes"]["chapter"]
+                if chapter_number not in chapter_dict:
+                    chapter_dict[chapter_number] = chap["id"]
 
-            def chapter_sort_key(chapter):
-                return float(chapter[0])
-
-            chapters.sort(key=chapter_sort_key)
+            chapters = [
+                (num, chapter_dict[num])
+                for num in sorted(chapter_dict.keys(), key=float)
+            ]
 
             return chapters, title
 
