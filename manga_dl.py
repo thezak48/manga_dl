@@ -4,6 +4,7 @@ This script is used to download manga's, manhua's or manhwa's.
 Usage:
     python manga_dl.py manga [options] save_location
 """
+
 import argparse
 import concurrent.futures
 import os
@@ -23,6 +24,7 @@ from manga_dl.utilities.sites.madraNew import MadraNew
 from manga_dl.utilities.sites.madraOld import MadraOld
 from manga_dl.utilities.sites.mangadex import Mangadex
 from manga_dl.utilities.sites.mangakakalot import Mangakakalot
+from manga_dl.utilities.sites.manganato import Manganato
 from manga_dl.utilities.sites.webtoons import Webtoons
 
 
@@ -88,6 +90,8 @@ def get_website_class(url: str):
         return Mangakakalot(log)
     elif "mangadex.org" in url:
         return Mangadex(log)
+    elif "manganato.com" in url or "chapmanganato.to" in url:
+        return Manganato(log)
     else:
         raise ValueError(f"Unsupported website: {url}")
 
@@ -234,9 +238,9 @@ def calc_next_run(schd, write_out=False):
                 f"{minutes} Minute{'s' if minutes > 1 else ''}" if minutes > 0 else ""
             )
             if write_out:
-                next_run[
-                    "next_run_str"
-                ] = f"Current Time: {current} | {time_until} until the next run at {time_to_run_str}"
+                next_run["next_run_str"] = (
+                    f"Current Time: {current} | {time_until} until the next run at {time_to_run_str}"
+                )
     else:
         next_run["next_run"] = None
         next_run["next_run_str"] = ""
