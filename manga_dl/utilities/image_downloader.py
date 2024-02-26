@@ -1,4 +1,5 @@
 """Download images helper"""
+
 import os
 import re
 import time
@@ -22,7 +23,9 @@ class ImageDownloader:
         self.logger = logger
         self.headers_image = headers
 
-    def download_image(self, chapter, image, path, progress, download_task, tmp_path):
+    def download_image(
+        self, chapter, image, path, progress, download_task, tmp_path, image_index
+    ):
         """
         Download a single image.
         """
@@ -30,8 +33,10 @@ class ImageDownloader:
         image_size = 0
         success = False
 
-        if "webtoons" in image:
-            image_name = os.path.basename(image).split("_")[-1]
+        if "webtoon" in image:
+            clean_url = image.split("?")[0]
+            image_ext = os.path.splitext(clean_url)[1]
+            image_name = f"{str(image_index).zfill(3)}{image_ext}"
             webtoons_path = os.path.join(tmp_path, image_name)
             result = requests.get(
                 url=image,
@@ -45,6 +50,7 @@ class ImageDownloader:
                     shutil.copyfileobj(result.raw, f)
                 progress.update(download_task, advance=1)
                 self.logger.info("Downloaded Ch. %s image: %s", chapter, image_name)
+                return True
             else:
                 self.logger.error(
                     "[bold red blink]Unable to download page[/][medium_spring_green]%d[/]"
@@ -158,7 +164,7 @@ class ImageDownloader:
             image_path = os.path.join(tmp_path, image_name)
 
             image_size = self.download_image(
-                chapter, image_url, image_path, progress, download_task, tmp_path
+                chapter, image_url, image_path, progress, download_task, tmp_path, i
             )
             if image_size:
                 results.append(True)
